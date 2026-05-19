@@ -1,0 +1,121 @@
+syntax = "proto3";
+
+package github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor;
+
+option go_package = "github.com/martketplace-vkr/analytics/pkg/api/grpc/v1/vendor;vendor";
+
+service AnalyticsVendorService {
+  rpc GetOverview(GetOverviewRequest) returns (GetOverviewResponse);
+  rpc GetNiches(GetNichesRequest) returns (GetNichesResponse);
+  rpc GetProducts(GetProductsRequest) returns (GetProductsResponse);
+  rpc UpsertProductCost(UpsertProductCostRequest) returns (UpsertProductCostResponse);
+  rpc ExportSalesReport(ExportSalesReportRequest) returns (ExportSalesReportResponse);
+}
+
+message GetOverviewRequest {
+  int64 vendor_id = 1;
+  string from = 2;
+  string to = 3;
+}
+
+message GetOverviewResponse {
+  AnalyticsKpi kpi = 1;
+  repeated DailyTrendPoint trend = 2;
+}
+
+message AnalyticsKpi {
+  int64 demand_units = 1;
+  int64 sold_units = 2;
+  int64 orders_count = 3;
+  int64 sales_count = 4;
+  string revenue = 5;
+  string gross_profit = 6;
+  double margin_percent = 7;
+  double cost_coverage_percent = 8;
+}
+
+message DailyTrendPoint {
+  string day = 1;
+  int64 demand_units = 2;
+  int64 sold_units = 3;
+  string revenue = 4;
+  string gross_profit = 5;
+}
+
+message GetNichesRequest {
+  int64 vendor_id = 1;
+  string from = 2;
+  string to = 3;
+  string sort = 4;
+  uint32 limit = 5;
+}
+
+message GetNichesResponse {
+  repeated NicheMetric niches = 1;
+}
+
+message NicheMetric {
+  int64 category_id = 1;
+  string category_name = 2;
+  int64 market_demand_units = 3;
+  int64 market_sold_units = 4;
+  string market_revenue = 5;
+  int64 active_products = 6;
+  int64 stock_count = 7;
+  int64 vendors_count = 8;
+  double opportunity_score = 9;
+  int64 vendor_demand_units = 10;
+  int64 vendor_sold_units = 11;
+  string vendor_revenue = 12;
+  string vendor_gross_profit = 13;
+  double vendor_margin_percent = 14;
+}
+
+message GetProductsRequest {
+  int64 vendor_id = 1;
+  string from = 2;
+  string to = 3;
+}
+
+message GetProductsResponse {
+  repeated ProductMetric products = 1;
+}
+
+message ProductMetric {
+  int64 product_id = 1;
+  string product_name = 2;
+  int64 category_id = 3;
+  string category_name = 4;
+  int64 stock_count = 5;
+  string price = 6;
+  string cost_price = 7;
+  bool has_cost = 8;
+  int64 demand_units = 9;
+  int64 sold_units = 10;
+  string revenue = 11;
+  string gross_profit = 12;
+  double margin_percent = 13;
+}
+
+message UpsertProductCostRequest {
+  int64 vendor_id = 1;
+  int64 product_id = 2;
+  string cost_price = 3;
+}
+
+message UpsertProductCostResponse {
+  ProductMetric product = 1;
+}
+
+message ExportSalesReportRequest {
+  int64 vendor_id = 1;
+  string from = 2;
+  string to = 3;
+  string format = 4;
+}
+
+message ExportSalesReportResponse {
+  bytes content = 1;
+  string filename = 2;
+  string content_type = 3;
+}
