@@ -1,0 +1,23 @@
+serviceName: analytics
+namespace: martketplace-vkr
+
+replicas: 1
+
+containerPort: 5000
+
+service:
+  type: ClusterIP
+  port: 5000
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 32Mi
+  limits:
+    cpu: 50m
+    memory: 32Mi
+
+ingress:
+  enabled: false
+  host: example.com
+  port: 8000
