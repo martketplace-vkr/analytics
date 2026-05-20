@@ -8,6 +8,7 @@ import (
 	"github.com/martketplace-vkr/analytics/internal/app/cmp/server"
 	repository "github.com/martketplace-vkr/analytics/internal/repository/pg"
 	analyticsService "github.com/martketplace-vkr/analytics/internal/service"
+	adminTransport "github.com/martketplace-vkr/analytics/internal/transport/grpc/v1/admin"
 	vendorTransport "github.com/martketplace-vkr/analytics/internal/transport/grpc/v1/vendor"
 	"github.com/martketplace-vkr/pkg/build"
 	"github.com/martketplace-vkr/pkg/build/components/pgxsqlxcomponent"
@@ -20,9 +21,10 @@ func Run(ctx context.Context, cfg *config.Config) error {
 
 	repo := repository.New(analyticsPG.DB, orderPG.DB, catalogPG.DB)
 	service := analyticsService.New(repo)
+	adminHandler := adminTransport.New(service)
 	vendorHandler := vendorTransport.New(service)
 
-	grpcServer := server.New(cfg.Grpc, vendorHandler)
+	grpcServer := server.New(cfg.Grpc, adminHandler, vendorHandler)
 	refreshCmp := refresher.New(cfg.Refresh.Interval.Duration, service)
 
 	cmps := build.Components{

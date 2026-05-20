@@ -25,6 +25,22 @@ func (f fakeRepository) GetProducts(context.Context, int64, domain.DateRange) ([
 	return []domain.ProductMetric{{ProductID: 10, CostPrice: "12.50", HasCost: true}}, nil
 }
 func (f fakeRepository) UpsertProductCost(context.Context, domain.ProductCost) error { return nil }
+func (f fakeRepository) ListTariffs(context.Context) ([]domain.Tariff, error)        { return nil, nil }
+func (f fakeRepository) CreateTariff(context.Context, domain.Tariff) (domain.Tariff, error) {
+	return domain.Tariff{}, nil
+}
+func (f fakeRepository) UpdateTariff(context.Context, domain.Tariff) (domain.Tariff, error) {
+	return domain.Tariff{}, nil
+}
+func (f fakeRepository) SetDefaultTariff(context.Context, int64) (domain.Tariff, error) {
+	return domain.Tariff{}, nil
+}
+func (f fakeRepository) AssignVendorTariff(context.Context, int64, int64) (domain.VendorTariffAssignment, error) {
+	return domain.VendorTariffAssignment{}, nil
+}
+func (f fakeRepository) GetVendorTariff(context.Context, int64) (domain.Tariff, error) {
+	return domain.Tariff{}, nil
+}
 func (f fakeRepository) VendorOwnsProduct(context.Context, int64, int64) (bool, error) {
 	return f.ownsProduct, nil
 }
@@ -48,18 +64,21 @@ func TestExportSalesReportCSV(t *testing.T) {
 	svc := New(fakeRepository{
 		rows: []domain.SalesReportRow{
 			{
-				Day:           "2026-05-19",
-				OrderID:       1,
-				Status:        "success",
-				ProductID:     10,
-				ProductName:   "Товар",
-				CategoryName:  "Категория",
-				Quantity:      2,
-				UnitPrice:     "100.00",
-				TotalPrice:    "200.00",
-				CostPrice:     "70.00",
-				GrossProfit:   "60.00",
-				MarginPercent: 30,
+				Day:              "2026-05-19",
+				OrderID:          1,
+				Status:           "success",
+				ProductID:        10,
+				ProductName:      "Товар",
+				CategoryName:     "Категория",
+				Quantity:         2,
+				UnitPrice:        "100.00",
+				TotalPrice:       "200.00",
+				CostPrice:        "70.00",
+				GrossProfit:      "60.00",
+				MarketplaceFee:   "10.00",
+				NetProfit:        "50.00",
+				MarginPercent:    30,
+				NetMarginPercent: 25,
 			},
 		},
 	})

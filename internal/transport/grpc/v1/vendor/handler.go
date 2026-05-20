@@ -31,8 +31,9 @@ func (h *Handler) GetOverview(ctx context.Context, req *vendorpb.GetOverviewRequ
 	}
 
 	return &vendorpb.GetOverviewResponse{
-		Kpi:   kpiToProto(overview.KPI),
-		Trend: trendToProto(overview.Trend),
+		Kpi:    kpiToProto(overview.KPI),
+		Trend:  trendToProto(overview.Trend),
+		Tariff: tariffToProto(overview.Tariff),
 	}, nil
 }
 
@@ -124,6 +125,9 @@ func kpiToProto(kpi domain.KPI) *vendorpb.AnalyticsKpi {
 		GrossProfit:         kpi.GrossProfit,
 		MarginPercent:       kpi.MarginPercent,
 		CostCoveragePercent: kpi.CostCoveragePercent,
+		MarketplaceFee:      kpi.MarketplaceFee,
+		NetProfit:           kpi.NetProfit,
+		NetMarginPercent:    kpi.NetMarginPercent,
 	}
 }
 
@@ -131,11 +135,13 @@ func trendToProto(trend []domain.DailyTrendPoint) []*vendorpb.DailyTrendPoint {
 	result := make([]*vendorpb.DailyTrendPoint, 0, len(trend))
 	for _, point := range trend {
 		result = append(result, &vendorpb.DailyTrendPoint{
-			Day:         point.Day,
-			DemandUnits: point.DemandUnits,
-			SoldUnits:   point.SoldUnits,
-			Revenue:     point.Revenue,
-			GrossProfit: point.GrossProfit,
+			Day:            point.Day,
+			DemandUnits:    point.DemandUnits,
+			SoldUnits:      point.SoldUnits,
+			Revenue:        point.Revenue,
+			GrossProfit:    point.GrossProfit,
+			MarketplaceFee: point.MarketplaceFee,
+			NetProfit:      point.NetProfit,
 		})
 	}
 	return result
@@ -145,20 +151,23 @@ func nichesToProto(niches []domain.NicheMetric) []*vendorpb.NicheMetric {
 	result := make([]*vendorpb.NicheMetric, 0, len(niches))
 	for _, niche := range niches {
 		result = append(result, &vendorpb.NicheMetric{
-			CategoryId:          niche.CategoryID,
-			CategoryName:        niche.CategoryName,
-			MarketDemandUnits:   niche.MarketDemandUnits,
-			MarketSoldUnits:     niche.MarketSoldUnits,
-			MarketRevenue:       niche.MarketRevenue,
-			ActiveProducts:      niche.ActiveProducts,
-			StockCount:          niche.StockCount,
-			VendorsCount:        niche.VendorsCount,
-			OpportunityScore:    niche.OpportunityScore,
-			VendorDemandUnits:   niche.VendorDemandUnits,
-			VendorSoldUnits:     niche.VendorSoldUnits,
-			VendorRevenue:       niche.VendorRevenue,
-			VendorGrossProfit:   niche.VendorGrossProfit,
-			VendorMarginPercent: niche.VendorMarginPercent,
+			CategoryId:             niche.CategoryID,
+			CategoryName:           niche.CategoryName,
+			MarketDemandUnits:      niche.MarketDemandUnits,
+			MarketSoldUnits:        niche.MarketSoldUnits,
+			MarketRevenue:          niche.MarketRevenue,
+			ActiveProducts:         niche.ActiveProducts,
+			StockCount:             niche.StockCount,
+			VendorsCount:           niche.VendorsCount,
+			OpportunityScore:       niche.OpportunityScore,
+			VendorDemandUnits:      niche.VendorDemandUnits,
+			VendorSoldUnits:        niche.VendorSoldUnits,
+			VendorRevenue:          niche.VendorRevenue,
+			VendorGrossProfit:      niche.VendorGrossProfit,
+			VendorMarginPercent:    niche.VendorMarginPercent,
+			VendorMarketplaceFee:   niche.VendorMarketplaceFee,
+			VendorNetProfit:        niche.VendorNetProfit,
+			VendorNetMarginPercent: niche.VendorNetMarginPercent,
 		})
 	}
 	return result
@@ -174,18 +183,36 @@ func productsToProto(products []domain.ProductMetric) []*vendorpb.ProductMetric 
 
 func productToProto(product domain.ProductMetric) *vendorpb.ProductMetric {
 	return &vendorpb.ProductMetric{
-		ProductId:     product.ProductID,
-		ProductName:   product.ProductName,
-		CategoryId:    product.CategoryID,
-		CategoryName:  product.CategoryName,
-		StockCount:    product.StockCount,
-		Price:         product.Price,
-		CostPrice:     product.CostPrice,
-		HasCost:       product.HasCost,
-		DemandUnits:   product.DemandUnits,
-		SoldUnits:     product.SoldUnits,
-		Revenue:       product.Revenue,
-		GrossProfit:   product.GrossProfit,
-		MarginPercent: product.MarginPercent,
+		ProductId:        product.ProductID,
+		ProductName:      product.ProductName,
+		CategoryId:       product.CategoryID,
+		CategoryName:     product.CategoryName,
+		StockCount:       product.StockCount,
+		Price:            product.Price,
+		CostPrice:        product.CostPrice,
+		HasCost:          product.HasCost,
+		DemandUnits:      product.DemandUnits,
+		SoldUnits:        product.SoldUnits,
+		Revenue:          product.Revenue,
+		GrossProfit:      product.GrossProfit,
+		MarginPercent:    product.MarginPercent,
+		MarketplaceFee:   product.MarketplaceFee,
+		NetProfit:        product.NetProfit,
+		NetMarginPercent: product.NetMarginPercent,
+	}
+}
+
+func tariffToProto(tariff domain.Tariff) *vendorpb.Tariff {
+	if tariff.ID == 0 {
+		return nil
+	}
+	return &vendorpb.Tariff{
+		Id:                tariff.ID,
+		Name:              tariff.Name,
+		CommissionPercent: tariff.CommissionPercent,
+		IsDefault:         tariff.IsDefault,
+		AssignedVendors:   tariff.AssignedVendors,
+		CreatedAt:         tariff.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		UpdatedAt:         tariff.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
 	}
 }

@@ -85,6 +85,7 @@ type GetOverviewResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Kpi           *AnalyticsKpi          `protobuf:"bytes,1,opt,name=kpi,proto3" json:"kpi,omitempty"`
 	Trend         []*DailyTrendPoint     `protobuf:"bytes,2,rep,name=trend,proto3" json:"trend,omitempty"`
+	Tariff        *Tariff                `protobuf:"bytes,3,opt,name=tariff,proto3" json:"tariff,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -133,6 +134,13 @@ func (x *GetOverviewResponse) GetTrend() []*DailyTrendPoint {
 	return nil
 }
 
+func (x *GetOverviewResponse) GetTariff() *Tariff {
+	if x != nil {
+		return x.Tariff
+	}
+	return nil
+}
+
 type AnalyticsKpi struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
 	DemandUnits         int64                  `protobuf:"varint,1,opt,name=demand_units,json=demandUnits,proto3" json:"demand_units,omitempty"`
@@ -143,6 +151,9 @@ type AnalyticsKpi struct {
 	GrossProfit         string                 `protobuf:"bytes,6,opt,name=gross_profit,json=grossProfit,proto3" json:"gross_profit,omitempty"`
 	MarginPercent       float64                `protobuf:"fixed64,7,opt,name=margin_percent,json=marginPercent,proto3" json:"margin_percent,omitempty"`
 	CostCoveragePercent float64                `protobuf:"fixed64,8,opt,name=cost_coverage_percent,json=costCoveragePercent,proto3" json:"cost_coverage_percent,omitempty"`
+	MarketplaceFee      string                 `protobuf:"bytes,9,opt,name=marketplace_fee,json=marketplaceFee,proto3" json:"marketplace_fee,omitempty"`
+	NetProfit           string                 `protobuf:"bytes,10,opt,name=net_profit,json=netProfit,proto3" json:"net_profit,omitempty"`
+	NetMarginPercent    float64                `protobuf:"fixed64,11,opt,name=net_margin_percent,json=netMarginPercent,proto3" json:"net_margin_percent,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -233,15 +244,38 @@ func (x *AnalyticsKpi) GetCostCoveragePercent() float64 {
 	return 0
 }
 
+func (x *AnalyticsKpi) GetMarketplaceFee() string {
+	if x != nil {
+		return x.MarketplaceFee
+	}
+	return ""
+}
+
+func (x *AnalyticsKpi) GetNetProfit() string {
+	if x != nil {
+		return x.NetProfit
+	}
+	return ""
+}
+
+func (x *AnalyticsKpi) GetNetMarginPercent() float64 {
+	if x != nil {
+		return x.NetMarginPercent
+	}
+	return 0
+}
+
 type DailyTrendPoint struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Day           string                 `protobuf:"bytes,1,opt,name=day,proto3" json:"day,omitempty"`
-	DemandUnits   int64                  `protobuf:"varint,2,opt,name=demand_units,json=demandUnits,proto3" json:"demand_units,omitempty"`
-	SoldUnits     int64                  `protobuf:"varint,3,opt,name=sold_units,json=soldUnits,proto3" json:"sold_units,omitempty"`
-	Revenue       string                 `protobuf:"bytes,4,opt,name=revenue,proto3" json:"revenue,omitempty"`
-	GrossProfit   string                 `protobuf:"bytes,5,opt,name=gross_profit,json=grossProfit,proto3" json:"gross_profit,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Day            string                 `protobuf:"bytes,1,opt,name=day,proto3" json:"day,omitempty"`
+	DemandUnits    int64                  `protobuf:"varint,2,opt,name=demand_units,json=demandUnits,proto3" json:"demand_units,omitempty"`
+	SoldUnits      int64                  `protobuf:"varint,3,opt,name=sold_units,json=soldUnits,proto3" json:"sold_units,omitempty"`
+	Revenue        string                 `protobuf:"bytes,4,opt,name=revenue,proto3" json:"revenue,omitempty"`
+	GrossProfit    string                 `protobuf:"bytes,5,opt,name=gross_profit,json=grossProfit,proto3" json:"gross_profit,omitempty"`
+	MarketplaceFee string                 `protobuf:"bytes,6,opt,name=marketplace_fee,json=marketplaceFee,proto3" json:"marketplace_fee,omitempty"`
+	NetProfit      string                 `protobuf:"bytes,7,opt,name=net_profit,json=netProfit,proto3" json:"net_profit,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *DailyTrendPoint) Reset() {
@@ -305,6 +339,20 @@ func (x *DailyTrendPoint) GetRevenue() string {
 func (x *DailyTrendPoint) GetGrossProfit() string {
 	if x != nil {
 		return x.GrossProfit
+	}
+	return ""
+}
+
+func (x *DailyTrendPoint) GetMarketplaceFee() string {
+	if x != nil {
+		return x.MarketplaceFee
+	}
+	return ""
+}
+
+func (x *DailyTrendPoint) GetNetProfit() string {
+	if x != nil {
+		return x.NetProfit
 	}
 	return ""
 }
@@ -430,23 +478,26 @@ func (x *GetNichesResponse) GetNiches() []*NicheMetric {
 }
 
 type NicheMetric struct {
-	state               protoimpl.MessageState `protogen:"open.v1"`
-	CategoryId          int64                  `protobuf:"varint,1,opt,name=category_id,json=categoryId,proto3" json:"category_id,omitempty"`
-	CategoryName        string                 `protobuf:"bytes,2,opt,name=category_name,json=categoryName,proto3" json:"category_name,omitempty"`
-	MarketDemandUnits   int64                  `protobuf:"varint,3,opt,name=market_demand_units,json=marketDemandUnits,proto3" json:"market_demand_units,omitempty"`
-	MarketSoldUnits     int64                  `protobuf:"varint,4,opt,name=market_sold_units,json=marketSoldUnits,proto3" json:"market_sold_units,omitempty"`
-	MarketRevenue       string                 `protobuf:"bytes,5,opt,name=market_revenue,json=marketRevenue,proto3" json:"market_revenue,omitempty"`
-	ActiveProducts      int64                  `protobuf:"varint,6,opt,name=active_products,json=activeProducts,proto3" json:"active_products,omitempty"`
-	StockCount          int64                  `protobuf:"varint,7,opt,name=stock_count,json=stockCount,proto3" json:"stock_count,omitempty"`
-	VendorsCount        int64                  `protobuf:"varint,8,opt,name=vendors_count,json=vendorsCount,proto3" json:"vendors_count,omitempty"`
-	OpportunityScore    float64                `protobuf:"fixed64,9,opt,name=opportunity_score,json=opportunityScore,proto3" json:"opportunity_score,omitempty"`
-	VendorDemandUnits   int64                  `protobuf:"varint,10,opt,name=vendor_demand_units,json=vendorDemandUnits,proto3" json:"vendor_demand_units,omitempty"`
-	VendorSoldUnits     int64                  `protobuf:"varint,11,opt,name=vendor_sold_units,json=vendorSoldUnits,proto3" json:"vendor_sold_units,omitempty"`
-	VendorRevenue       string                 `protobuf:"bytes,12,opt,name=vendor_revenue,json=vendorRevenue,proto3" json:"vendor_revenue,omitempty"`
-	VendorGrossProfit   string                 `protobuf:"bytes,13,opt,name=vendor_gross_profit,json=vendorGrossProfit,proto3" json:"vendor_gross_profit,omitempty"`
-	VendorMarginPercent float64                `protobuf:"fixed64,14,opt,name=vendor_margin_percent,json=vendorMarginPercent,proto3" json:"vendor_margin_percent,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	state                  protoimpl.MessageState `protogen:"open.v1"`
+	CategoryId             int64                  `protobuf:"varint,1,opt,name=category_id,json=categoryId,proto3" json:"category_id,omitempty"`
+	CategoryName           string                 `protobuf:"bytes,2,opt,name=category_name,json=categoryName,proto3" json:"category_name,omitempty"`
+	MarketDemandUnits      int64                  `protobuf:"varint,3,opt,name=market_demand_units,json=marketDemandUnits,proto3" json:"market_demand_units,omitempty"`
+	MarketSoldUnits        int64                  `protobuf:"varint,4,opt,name=market_sold_units,json=marketSoldUnits,proto3" json:"market_sold_units,omitempty"`
+	MarketRevenue          string                 `protobuf:"bytes,5,opt,name=market_revenue,json=marketRevenue,proto3" json:"market_revenue,omitempty"`
+	ActiveProducts         int64                  `protobuf:"varint,6,opt,name=active_products,json=activeProducts,proto3" json:"active_products,omitempty"`
+	StockCount             int64                  `protobuf:"varint,7,opt,name=stock_count,json=stockCount,proto3" json:"stock_count,omitempty"`
+	VendorsCount           int64                  `protobuf:"varint,8,opt,name=vendors_count,json=vendorsCount,proto3" json:"vendors_count,omitempty"`
+	OpportunityScore       float64                `protobuf:"fixed64,9,opt,name=opportunity_score,json=opportunityScore,proto3" json:"opportunity_score,omitempty"`
+	VendorDemandUnits      int64                  `protobuf:"varint,10,opt,name=vendor_demand_units,json=vendorDemandUnits,proto3" json:"vendor_demand_units,omitempty"`
+	VendorSoldUnits        int64                  `protobuf:"varint,11,opt,name=vendor_sold_units,json=vendorSoldUnits,proto3" json:"vendor_sold_units,omitempty"`
+	VendorRevenue          string                 `protobuf:"bytes,12,opt,name=vendor_revenue,json=vendorRevenue,proto3" json:"vendor_revenue,omitempty"`
+	VendorGrossProfit      string                 `protobuf:"bytes,13,opt,name=vendor_gross_profit,json=vendorGrossProfit,proto3" json:"vendor_gross_profit,omitempty"`
+	VendorMarginPercent    float64                `protobuf:"fixed64,14,opt,name=vendor_margin_percent,json=vendorMarginPercent,proto3" json:"vendor_margin_percent,omitempty"`
+	VendorMarketplaceFee   string                 `protobuf:"bytes,15,opt,name=vendor_marketplace_fee,json=vendorMarketplaceFee,proto3" json:"vendor_marketplace_fee,omitempty"`
+	VendorNetProfit        string                 `protobuf:"bytes,16,opt,name=vendor_net_profit,json=vendorNetProfit,proto3" json:"vendor_net_profit,omitempty"`
+	VendorNetMarginPercent float64                `protobuf:"fixed64,17,opt,name=vendor_net_margin_percent,json=vendorNetMarginPercent,proto3" json:"vendor_net_margin_percent,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
 }
 
 func (x *NicheMetric) Reset() {
@@ -577,6 +628,27 @@ func (x *NicheMetric) GetVendorMarginPercent() float64 {
 	return 0
 }
 
+func (x *NicheMetric) GetVendorMarketplaceFee() string {
+	if x != nil {
+		return x.VendorMarketplaceFee
+	}
+	return ""
+}
+
+func (x *NicheMetric) GetVendorNetProfit() string {
+	if x != nil {
+		return x.VendorNetProfit
+	}
+	return ""
+}
+
+func (x *NicheMetric) GetVendorNetMarginPercent() float64 {
+	if x != nil {
+		return x.VendorNetMarginPercent
+	}
+	return 0
+}
+
 type GetProductsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	VendorId      int64                  `protobuf:"varint,1,opt,name=vendor_id,json=vendorId,proto3" json:"vendor_id,omitempty"`
@@ -682,22 +754,25 @@ func (x *GetProductsResponse) GetProducts() []*ProductMetric {
 }
 
 type ProductMetric struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ProductId     int64                  `protobuf:"varint,1,opt,name=product_id,json=productId,proto3" json:"product_id,omitempty"`
-	ProductName   string                 `protobuf:"bytes,2,opt,name=product_name,json=productName,proto3" json:"product_name,omitempty"`
-	CategoryId    int64                  `protobuf:"varint,3,opt,name=category_id,json=categoryId,proto3" json:"category_id,omitempty"`
-	CategoryName  string                 `protobuf:"bytes,4,opt,name=category_name,json=categoryName,proto3" json:"category_name,omitempty"`
-	StockCount    int64                  `protobuf:"varint,5,opt,name=stock_count,json=stockCount,proto3" json:"stock_count,omitempty"`
-	Price         string                 `protobuf:"bytes,6,opt,name=price,proto3" json:"price,omitempty"`
-	CostPrice     string                 `protobuf:"bytes,7,opt,name=cost_price,json=costPrice,proto3" json:"cost_price,omitempty"`
-	HasCost       bool                   `protobuf:"varint,8,opt,name=has_cost,json=hasCost,proto3" json:"has_cost,omitempty"`
-	DemandUnits   int64                  `protobuf:"varint,9,opt,name=demand_units,json=demandUnits,proto3" json:"demand_units,omitempty"`
-	SoldUnits     int64                  `protobuf:"varint,10,opt,name=sold_units,json=soldUnits,proto3" json:"sold_units,omitempty"`
-	Revenue       string                 `protobuf:"bytes,11,opt,name=revenue,proto3" json:"revenue,omitempty"`
-	GrossProfit   string                 `protobuf:"bytes,12,opt,name=gross_profit,json=grossProfit,proto3" json:"gross_profit,omitempty"`
-	MarginPercent float64                `protobuf:"fixed64,13,opt,name=margin_percent,json=marginPercent,proto3" json:"margin_percent,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	ProductId        int64                  `protobuf:"varint,1,opt,name=product_id,json=productId,proto3" json:"product_id,omitempty"`
+	ProductName      string                 `protobuf:"bytes,2,opt,name=product_name,json=productName,proto3" json:"product_name,omitempty"`
+	CategoryId       int64                  `protobuf:"varint,3,opt,name=category_id,json=categoryId,proto3" json:"category_id,omitempty"`
+	CategoryName     string                 `protobuf:"bytes,4,opt,name=category_name,json=categoryName,proto3" json:"category_name,omitempty"`
+	StockCount       int64                  `protobuf:"varint,5,opt,name=stock_count,json=stockCount,proto3" json:"stock_count,omitempty"`
+	Price            string                 `protobuf:"bytes,6,opt,name=price,proto3" json:"price,omitempty"`
+	CostPrice        string                 `protobuf:"bytes,7,opt,name=cost_price,json=costPrice,proto3" json:"cost_price,omitempty"`
+	HasCost          bool                   `protobuf:"varint,8,opt,name=has_cost,json=hasCost,proto3" json:"has_cost,omitempty"`
+	DemandUnits      int64                  `protobuf:"varint,9,opt,name=demand_units,json=demandUnits,proto3" json:"demand_units,omitempty"`
+	SoldUnits        int64                  `protobuf:"varint,10,opt,name=sold_units,json=soldUnits,proto3" json:"sold_units,omitempty"`
+	Revenue          string                 `protobuf:"bytes,11,opt,name=revenue,proto3" json:"revenue,omitempty"`
+	GrossProfit      string                 `protobuf:"bytes,12,opt,name=gross_profit,json=grossProfit,proto3" json:"gross_profit,omitempty"`
+	MarginPercent    float64                `protobuf:"fixed64,13,opt,name=margin_percent,json=marginPercent,proto3" json:"margin_percent,omitempty"`
+	MarketplaceFee   string                 `protobuf:"bytes,14,opt,name=marketplace_fee,json=marketplaceFee,proto3" json:"marketplace_fee,omitempty"`
+	NetProfit        string                 `protobuf:"bytes,15,opt,name=net_profit,json=netProfit,proto3" json:"net_profit,omitempty"`
+	NetMarginPercent float64                `protobuf:"fixed64,16,opt,name=net_margin_percent,json=netMarginPercent,proto3" json:"net_margin_percent,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *ProductMetric) Reset() {
@@ -817,6 +892,27 @@ func (x *ProductMetric) GetGrossProfit() string {
 func (x *ProductMetric) GetMarginPercent() float64 {
 	if x != nil {
 		return x.MarginPercent
+	}
+	return 0
+}
+
+func (x *ProductMetric) GetMarketplaceFee() string {
+	if x != nil {
+		return x.MarketplaceFee
+	}
+	return ""
+}
+
+func (x *ProductMetric) GetNetProfit() string {
+	if x != nil {
+		return x.NetProfit
+	}
+	return ""
+}
+
+func (x *ProductMetric) GetNetMarginPercent() float64 {
+	if x != nil {
+		return x.NetMarginPercent
 	}
 	return 0
 }
@@ -1053,6 +1149,98 @@ func (x *ExportSalesReportResponse) GetContentType() string {
 	return ""
 }
 
+type Tariff struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	Id                int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name              string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	CommissionPercent string                 `protobuf:"bytes,3,opt,name=commission_percent,json=commissionPercent,proto3" json:"commission_percent,omitempty"`
+	IsDefault         bool                   `protobuf:"varint,4,opt,name=is_default,json=isDefault,proto3" json:"is_default,omitempty"`
+	AssignedVendors   int64                  `protobuf:"varint,5,opt,name=assigned_vendors,json=assignedVendors,proto3" json:"assigned_vendors,omitempty"`
+	CreatedAt         string                 `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt         string                 `protobuf:"bytes,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *Tariff) Reset() {
+	*x = Tariff{}
+	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Tariff) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Tariff) ProtoMessage() {}
+
+func (x *Tariff) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Tariff.ProtoReflect.Descriptor instead.
+func (*Tariff) Descriptor() ([]byte, []int) {
+	return file_v1_vendor_analytics_vendor_service_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *Tariff) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *Tariff) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Tariff) GetCommissionPercent() string {
+	if x != nil {
+		return x.CommissionPercent
+	}
+	return ""
+}
+
+func (x *Tariff) GetIsDefault() bool {
+	if x != nil {
+		return x.IsDefault
+	}
+	return false
+}
+
+func (x *Tariff) GetAssignedVendors() int64 {
+	if x != nil {
+		return x.AssignedVendors
+	}
+	return 0
+}
+
+func (x *Tariff) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *Tariff) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
 var File_v1_vendor_analytics_vendor_service_proto protoreflect.FileDescriptor
 
 const file_v1_vendor_analytics_vendor_service_proto_rawDesc = "" +
@@ -1061,10 +1249,11 @@ const file_v1_vendor_analytics_vendor_service_proto_rawDesc = "" +
 	"\x12GetOverviewRequest\x12\x1b\n" +
 	"\tvendor_id\x18\x01 \x01(\x03R\bvendorId\x12\x12\n" +
 	"\x04from\x18\x02 \x01(\tR\x04from\x12\x0e\n" +
-	"\x02to\x18\x03 \x01(\tR\x02to\"\xd8\x01\n" +
+	"\x02to\x18\x03 \x01(\tR\x02to\"\xb6\x02\n" +
 	"\x13GetOverviewResponse\x12\\\n" +
 	"\x03kpi\x18\x01 \x01(\v2J.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsKpiR\x03kpi\x12c\n" +
-	"\x05trend\x18\x02 \x03(\v2M.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.DailyTrendPointR\x05trend\"\xac\x02\n" +
+	"\x05trend\x18\x02 \x03(\v2M.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.DailyTrendPointR\x05trend\x12\\\n" +
+	"\x06tariff\x18\x03 \x01(\v2D.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.TariffR\x06tariff\"\xa2\x03\n" +
 	"\fAnalyticsKpi\x12!\n" +
 	"\fdemand_units\x18\x01 \x01(\x03R\vdemandUnits\x12\x1d\n" +
 	"\n" +
@@ -1075,14 +1264,22 @@ const file_v1_vendor_analytics_vendor_service_proto_rawDesc = "" +
 	"\arevenue\x18\x05 \x01(\tR\arevenue\x12!\n" +
 	"\fgross_profit\x18\x06 \x01(\tR\vgrossProfit\x12%\n" +
 	"\x0emargin_percent\x18\a \x01(\x01R\rmarginPercent\x122\n" +
-	"\x15cost_coverage_percent\x18\b \x01(\x01R\x13costCoveragePercent\"\xa2\x01\n" +
+	"\x15cost_coverage_percent\x18\b \x01(\x01R\x13costCoveragePercent\x12'\n" +
+	"\x0fmarketplace_fee\x18\t \x01(\tR\x0emarketplaceFee\x12\x1d\n" +
+	"\n" +
+	"net_profit\x18\n" +
+	" \x01(\tR\tnetProfit\x12,\n" +
+	"\x12net_margin_percent\x18\v \x01(\x01R\x10netMarginPercent\"\xea\x01\n" +
 	"\x0fDailyTrendPoint\x12\x10\n" +
 	"\x03day\x18\x01 \x01(\tR\x03day\x12!\n" +
 	"\fdemand_units\x18\x02 \x01(\x03R\vdemandUnits\x12\x1d\n" +
 	"\n" +
 	"sold_units\x18\x03 \x01(\x03R\tsoldUnits\x12\x18\n" +
 	"\arevenue\x18\x04 \x01(\tR\arevenue\x12!\n" +
-	"\fgross_profit\x18\x05 \x01(\tR\vgrossProfit\"}\n" +
+	"\fgross_profit\x18\x05 \x01(\tR\vgrossProfit\x12'\n" +
+	"\x0fmarketplace_fee\x18\x06 \x01(\tR\x0emarketplaceFee\x12\x1d\n" +
+	"\n" +
+	"net_profit\x18\a \x01(\tR\tnetProfit\"}\n" +
 	"\x10GetNichesRequest\x12\x1b\n" +
 	"\tvendor_id\x18\x01 \x01(\x03R\bvendorId\x12\x12\n" +
 	"\x04from\x18\x02 \x01(\tR\x04from\x12\x0e\n" +
@@ -1090,7 +1287,7 @@ const file_v1_vendor_analytics_vendor_service_proto_rawDesc = "" +
 	"\x04sort\x18\x04 \x01(\tR\x04sort\x12\x14\n" +
 	"\x05limit\x18\x05 \x01(\rR\x05limit\"v\n" +
 	"\x11GetNichesResponse\x12a\n" +
-	"\x06niches\x18\x01 \x03(\v2I.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.NicheMetricR\x06niches\"\xd9\x04\n" +
+	"\x06niches\x18\x01 \x03(\v2I.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.NicheMetricR\x06niches\"\xf6\x05\n" +
 	"\vNicheMetric\x12\x1f\n" +
 	"\vcategory_id\x18\x01 \x01(\x03R\n" +
 	"categoryId\x12#\n" +
@@ -1108,13 +1305,16 @@ const file_v1_vendor_analytics_vendor_service_proto_rawDesc = "" +
 	"\x11vendor_sold_units\x18\v \x01(\x03R\x0fvendorSoldUnits\x12%\n" +
 	"\x0evendor_revenue\x18\f \x01(\tR\rvendorRevenue\x12.\n" +
 	"\x13vendor_gross_profit\x18\r \x01(\tR\x11vendorGrossProfit\x122\n" +
-	"\x15vendor_margin_percent\x18\x0e \x01(\x01R\x13vendorMarginPercent\"U\n" +
+	"\x15vendor_margin_percent\x18\x0e \x01(\x01R\x13vendorMarginPercent\x124\n" +
+	"\x16vendor_marketplace_fee\x18\x0f \x01(\tR\x14vendorMarketplaceFee\x12*\n" +
+	"\x11vendor_net_profit\x18\x10 \x01(\tR\x0fvendorNetProfit\x129\n" +
+	"\x19vendor_net_margin_percent\x18\x11 \x01(\x01R\x16vendorNetMarginPercent\"U\n" +
 	"\x12GetProductsRequest\x12\x1b\n" +
 	"\tvendor_id\x18\x01 \x01(\x03R\bvendorId\x12\x12\n" +
 	"\x04from\x18\x02 \x01(\tR\x04from\x12\x0e\n" +
 	"\x02to\x18\x03 \x01(\tR\x02to\"~\n" +
 	"\x13GetProductsResponse\x12g\n" +
-	"\bproducts\x18\x01 \x03(\v2K.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ProductMetricR\bproducts\"\xae\x03\n" +
+	"\bproducts\x18\x01 \x03(\v2K.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ProductMetricR\bproducts\"\xa4\x04\n" +
 	"\rProductMetric\x12\x1d\n" +
 	"\n" +
 	"product_id\x18\x01 \x01(\x03R\tproductId\x12!\n" +
@@ -1134,7 +1334,11 @@ const file_v1_vendor_analytics_vendor_service_proto_rawDesc = "" +
 	" \x01(\x03R\tsoldUnits\x12\x18\n" +
 	"\arevenue\x18\v \x01(\tR\arevenue\x12!\n" +
 	"\fgross_profit\x18\f \x01(\tR\vgrossProfit\x12%\n" +
-	"\x0emargin_percent\x18\r \x01(\x01R\rmarginPercent\"u\n" +
+	"\x0emargin_percent\x18\r \x01(\x01R\rmarginPercent\x12'\n" +
+	"\x0fmarketplace_fee\x18\x0e \x01(\tR\x0emarketplaceFee\x12\x1d\n" +
+	"\n" +
+	"net_profit\x18\x0f \x01(\tR\tnetProfit\x12,\n" +
+	"\x12net_margin_percent\x18\x10 \x01(\x01R\x10netMarginPercent\"u\n" +
 	"\x18UpsertProductCostRequest\x12\x1b\n" +
 	"\tvendor_id\x18\x01 \x01(\x03R\bvendorId\x12\x1d\n" +
 	"\n" +
@@ -1151,7 +1355,18 @@ const file_v1_vendor_analytics_vendor_service_proto_rawDesc = "" +
 	"\x19ExportSalesReportResponse\x12\x18\n" +
 	"\acontent\x18\x01 \x01(\fR\acontent\x12\x1a\n" +
 	"\bfilename\x18\x02 \x01(\tR\bfilename\x12!\n" +
-	"\fcontent_type\x18\x03 \x01(\tR\vcontentType2\xbf\a\n" +
+	"\fcontent_type\x18\x03 \x01(\tR\vcontentType\"\xe3\x01\n" +
+	"\x06Tariff\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12-\n" +
+	"\x12commission_percent\x18\x03 \x01(\tR\x11commissionPercent\x12\x1d\n" +
+	"\n" +
+	"is_default\x18\x04 \x01(\bR\tisDefault\x12)\n" +
+	"\x10assigned_vendors\x18\x05 \x01(\x03R\x0fassignedVendors\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x06 \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\a \x01(\tR\tupdatedAt2\xbf\a\n" +
 	"\x16AnalyticsVendorService\x12\xb2\x01\n" +
 	"\vGetOverview\x12P.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetOverviewRequest\x1aQ.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetOverviewResponse\x12\xac\x01\n" +
 	"\tGetNiches\x12N.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetNichesRequest\x1aO.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetNichesResponse\x12\xb2\x01\n" +
@@ -1171,7 +1386,7 @@ func file_v1_vendor_analytics_vendor_service_proto_rawDescGZIP() []byte {
 	return file_v1_vendor_analytics_vendor_service_proto_rawDescData
 }
 
-var file_v1_vendor_analytics_vendor_service_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_v1_vendor_analytics_vendor_service_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_v1_vendor_analytics_vendor_service_proto_goTypes = []any{
 	(*GetOverviewRequest)(nil),        // 0: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetOverviewRequest
 	(*GetOverviewResponse)(nil),       // 1: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetOverviewResponse
@@ -1187,28 +1402,30 @@ var file_v1_vendor_analytics_vendor_service_proto_goTypes = []any{
 	(*UpsertProductCostResponse)(nil), // 11: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.UpsertProductCostResponse
 	(*ExportSalesReportRequest)(nil),  // 12: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ExportSalesReportRequest
 	(*ExportSalesReportResponse)(nil), // 13: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ExportSalesReportResponse
+	(*Tariff)(nil),                    // 14: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.Tariff
 }
 var file_v1_vendor_analytics_vendor_service_proto_depIdxs = []int32{
 	2,  // 0: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetOverviewResponse.kpi:type_name -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsKpi
 	3,  // 1: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetOverviewResponse.trend:type_name -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.DailyTrendPoint
-	6,  // 2: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetNichesResponse.niches:type_name -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.NicheMetric
-	9,  // 3: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetProductsResponse.products:type_name -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ProductMetric
-	9,  // 4: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.UpsertProductCostResponse.product:type_name -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ProductMetric
-	0,  // 5: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.GetOverview:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetOverviewRequest
-	4,  // 6: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.GetNiches:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetNichesRequest
-	7,  // 7: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.GetProducts:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetProductsRequest
-	10, // 8: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.UpsertProductCost:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.UpsertProductCostRequest
-	12, // 9: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.ExportSalesReport:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ExportSalesReportRequest
-	1,  // 10: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.GetOverview:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetOverviewResponse
-	5,  // 11: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.GetNiches:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetNichesResponse
-	8,  // 12: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.GetProducts:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetProductsResponse
-	11, // 13: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.UpsertProductCost:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.UpsertProductCostResponse
-	13, // 14: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.ExportSalesReport:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ExportSalesReportResponse
-	10, // [10:15] is the sub-list for method output_type
-	5,  // [5:10] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	14, // 2: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetOverviewResponse.tariff:type_name -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.Tariff
+	6,  // 3: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetNichesResponse.niches:type_name -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.NicheMetric
+	9,  // 4: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetProductsResponse.products:type_name -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ProductMetric
+	9,  // 5: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.UpsertProductCostResponse.product:type_name -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ProductMetric
+	0,  // 6: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.GetOverview:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetOverviewRequest
+	4,  // 7: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.GetNiches:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetNichesRequest
+	7,  // 8: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.GetProducts:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetProductsRequest
+	10, // 9: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.UpsertProductCost:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.UpsertProductCostRequest
+	12, // 10: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.ExportSalesReport:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ExportSalesReportRequest
+	1,  // 11: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.GetOverview:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetOverviewResponse
+	5,  // 12: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.GetNiches:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetNichesResponse
+	8,  // 13: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.GetProducts:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetProductsResponse
+	11, // 14: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.UpsertProductCost:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.UpsertProductCostResponse
+	13, // 15: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.ExportSalesReport:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ExportSalesReportResponse
+	11, // [11:16] is the sub-list for method output_type
+	6,  // [6:11] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_v1_vendor_analytics_vendor_service_proto_init() }
@@ -1222,7 +1439,7 @@ func file_v1_vendor_analytics_vendor_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_vendor_analytics_vendor_service_proto_rawDesc), len(file_v1_vendor_analytics_vendor_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   14,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

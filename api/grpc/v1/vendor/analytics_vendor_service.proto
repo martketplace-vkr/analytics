@@ -21,6 +21,7 @@ message GetOverviewRequest {
 message GetOverviewResponse {
   AnalyticsKpi kpi = 1;
   repeated DailyTrendPoint trend = 2;
+  Tariff tariff = 3;
 }
 
 message AnalyticsKpi {
@@ -32,6 +33,9 @@ message AnalyticsKpi {
   string gross_profit = 6;
   double margin_percent = 7;
   double cost_coverage_percent = 8;
+  string marketplace_fee = 9;
+  string net_profit = 10;
+  double net_margin_percent = 11;
 }
 
 message DailyTrendPoint {
@@ -40,6 +44,8 @@ message DailyTrendPoint {
   int64 sold_units = 3;
   string revenue = 4;
   string gross_profit = 5;
+  string marketplace_fee = 6;
+  string net_profit = 7;
 }
 
 message GetNichesRequest {
@@ -69,6 +75,9 @@ message NicheMetric {
   string vendor_revenue = 12;
   string vendor_gross_profit = 13;
   double vendor_margin_percent = 14;
+  string vendor_marketplace_fee = 15;
+  string vendor_net_profit = 16;
+  double vendor_net_margin_percent = 17;
 }
 
 message GetProductsRequest {
@@ -95,6 +104,9 @@ message ProductMetric {
   string revenue = 11;
   string gross_profit = 12;
   double margin_percent = 13;
+  string marketplace_fee = 14;
+  string net_profit = 15;
+  double net_margin_percent = 16;
 }
 
 message UpsertProductCostRequest {
@@ -118,4 +130,14 @@ message ExportSalesReportResponse {
   bytes content = 1;
   string filename = 2;
   string content_type = 3;
+}
+
+message Tariff {
+  int64 id = 1;
+  string name = 2;
+  string commission_percent = 3;
+  bool is_default = 4;
+  int64 assigned_vendors = 5;
+  string created_at = 6;
+  string updated_at = 7;
 }

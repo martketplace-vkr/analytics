@@ -7,6 +7,33 @@ create table if not exists vendor_product_costs (
     constraint pk_vendor_product_costs primary key (vendor_id, product_id)
 );
 
+create table if not exists vendor_tariffs (
+    id bigserial primary key,
+    name text not null,
+    commission_percent numeric(5,2) not null check (commission_percent >= 0 and commission_percent <= 100),
+    is_default boolean not null default false,
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()
+);
+
+create unique index if not exists vendor_tariffs_single_default_idx
+    on vendor_tariffs (is_default)
+    where is_default;
+
+insert into vendor_tariffs (name, commission_percent, is_default)
+select 'Default', 5.00, true
+where not exists (select 1 from vendor_tariffs where is_default);
+
+create table if not exists vendor_tariff_assignments (
+    vendor_id bigint primary key,
+    tariff_id bigint not null references vendor_tariffs(id),
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()
+);
+
+create index if not exists vendor_tariff_assignments_tariff_idx
+    on vendor_tariff_assignments (tariff_id);
+
 create table if not exists daily_vendor_product_metrics (
     day date not null,
     vendor_id bigint not null,
@@ -21,6 +48,8 @@ create table if not exists daily_vendor_product_metrics (
     cost_covered_revenue numeric(14,2) not null default 0,
     cost_total numeric(14,2) not null default 0,
     gross_profit numeric(14,2) not null default 0,
+    marketplace_fee numeric(14,2) not null default 0,
+    net_profit numeric(14,2) not null default 0,
     constraint pk_daily_vendor_product_metrics primary key (day, vendor_id, product_id)
 );
 

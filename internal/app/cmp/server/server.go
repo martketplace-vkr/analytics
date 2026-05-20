@@ -5,6 +5,7 @@ import (
 	"net"
 	"time"
 
+	adminpb "github.com/martketplace-vkr/analytics/pkg/api/grpc/v1/admin"
 	vendorpb "github.com/martketplace-vkr/analytics/pkg/api/grpc/v1/vendor"
 	grpcServer "github.com/martketplace-vkr/pkg/server/grpc"
 	"google.golang.org/grpc"
@@ -16,12 +17,14 @@ const cmpName = "GRPC server"
 type Server struct {
 	cfg        grpcServer.Config
 	grpcServer *grpc.Server
+	admin      adminpb.AnalyticsAdminServiceServer
 	vendor     vendorpb.AnalyticsVendorServiceServer
 }
 
-func New(cfg grpcServer.Config, vendor vendorpb.AnalyticsVendorServiceServer) *Server {
+func New(cfg grpcServer.Config, admin adminpb.AnalyticsAdminServiceServer, vendor vendorpb.AnalyticsVendorServiceServer) *Server {
 	return &Server{
 		cfg:    cfg,
+		admin:  admin,
 		vendor: vendor,
 	}
 }
@@ -34,6 +37,7 @@ func (s *Server) Start(ctx context.Context) error {
 
 	s.grpcServer = server.Grpc
 	reflection.Register(s.grpcServer)
+	adminpb.RegisterAnalyticsAdminServiceServer(s.grpcServer, s.admin)
 	vendorpb.RegisterAnalyticsVendorServiceServer(s.grpcServer, s.vendor)
 
 	listener, err := net.Listen("tcp", s.cfg.Host)

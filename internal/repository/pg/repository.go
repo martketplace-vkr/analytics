@@ -57,20 +57,32 @@ type costRow struct {
 	CostPrice string `db:"cost_price"`
 }
 
+type tariffRow struct {
+	ID                int64     `db:"id"`
+	Name              string    `db:"name"`
+	CommissionPercent string    `db:"commission_percent"`
+	IsDefault         bool      `db:"is_default"`
+	AssignedVendors   int64     `db:"assigned_vendors"`
+	CreatedAt         time.Time `db:"created_at"`
+	UpdatedAt         time.Time `db:"updated_at"`
+}
+
 type productAgg struct {
-	Day                string
-	VendorID           int64
-	ProductID          int64
-	CategoryID         int64
-	OrdersCount        int64
-	SalesCount         int64
-	DemandUnits        int64
-	SoldUnits          int64
-	SoldUnitsWithCost  int64
-	RevenueCents       int64
-	CostCoveredRevenue int64
-	CostTotalCents     int64
-	GrossProfitCents   int64
+	Day                 string
+	VendorID            int64
+	ProductID           int64
+	CategoryID          int64
+	OrdersCount         int64
+	SalesCount          int64
+	DemandUnits         int64
+	SoldUnits           int64
+	SoldUnitsWithCost   int64
+	RevenueCents        int64
+	CostCoveredRevenue  int64
+	CostTotalCents      int64
+	GrossProfitCents    int64
+	MarketplaceFeeCents int64
+	NetProfitCents      int64
 }
 
 type nicheAgg struct {
@@ -98,6 +110,11 @@ func (r *Repository) RefreshAggregates(ctx context.Context) error {
 	}
 
 	costs, err := r.selectCosts(ctx)
+	if err != nil {
+		return err
+	}
+
+	tariffs, err := r.selectVendorTariffRates(ctx)
 	if err != nil {
 		return err
 	}
@@ -141,10 +158,13 @@ func (r *Repository) RefreshAggregates(ctx context.Context) error {
 		}
 
 		totalCents := parseMoneyCents(order.TotalPrice)
+		feeCents := calculatePercentCents(totalCents, tariffs, order.VendorID)
 		pAgg := getProductAgg(productAggs, day, order.VendorID, order.ProductID, categoryID)
 		pAgg.SalesCount++
 		pAgg.SoldUnits += order.Quantity
 		pAgg.RevenueCents += totalCents
+		pAgg.MarketplaceFeeCents += feeCents
+		pAgg.NetProfitCents += totalCents - feeCents
 
 		if costCents, ok := costByProduct[costKey(order.VendorID, order.ProductID)]; ok {
 			totalCost := costCents * order.Quantity
@@ -152,6 +172,7 @@ func (r *Repository) RefreshAggregates(ctx context.Context) error {
 			pAgg.CostCoveredRevenue += totalCents
 			pAgg.CostTotalCents += totalCost
 			pAgg.GrossProfitCents += totalCents - totalCost
+			pAgg.NetProfitCents -= totalCost
 		}
 
 		nAgg := getNicheAgg(nicheAggs, day, categoryID)
@@ -194,9 +215,9 @@ func (r *Repository) RefreshAggregates(ctx context.Context) error {
 			insert into daily_vendor_product_metrics (
 				day, vendor_id, product_id, category_id, orders_count, sales_count,
 				demand_units, sold_units, sold_units_with_cost, revenue,
-				cost_covered_revenue, cost_total, gross_profit
+				cost_covered_revenue, cost_total, gross_profit, marketplace_fee, net_profit
 			)
-			values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+			values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
 		`,
 			agg.Day,
 			agg.VendorID,
@@ -211,6 +232,8 @@ func (r *Repository) RefreshAggregates(ctx context.Context) error {
 			formatCents(agg.CostCoveredRevenue),
 			formatCents(agg.CostTotalCents),
 			formatCents(agg.GrossProfitCents),
+			formatCents(agg.MarketplaceFeeCents),
+			formatCents(agg.NetProfitCents),
 		); err != nil {
 			return err
 		}
@@ -251,6 +274,8 @@ func (r *Repository) GetOverview(ctx context.Context, vendorID int64, dateRange 
 		SalesCount         int64  `db:"sales_count"`
 		Revenue            string `db:"revenue"`
 		GrossProfit        string `db:"gross_profit"`
+		MarketplaceFee     string `db:"marketplace_fee"`
+		NetProfit          string `db:"net_profit"`
 		CostCoveredRevenue string `db:"cost_covered_revenue"`
 	}{}
 
@@ -263,6 +288,8 @@ func (r *Repository) GetOverview(ctx context.Context, vendorID int64, dateRange 
 			coalesce(sum(sales_count), 0) as sales_count,
 			coalesce(sum(revenue), 0)::text as revenue,
 			coalesce(sum(gross_profit), 0)::text as gross_profit,
+			coalesce(sum(marketplace_fee), 0)::text as marketplace_fee,
+			coalesce(sum(net_profit), 0)::text as net_profit,
 			coalesce(sum(cost_covered_revenue), 0)::text as cost_covered_revenue
 		from daily_vendor_product_metrics
 		where vendor_id = $1
@@ -273,11 +300,13 @@ func (r *Repository) GetOverview(ctx context.Context, vendorID int64, dateRange 
 	}
 
 	trendRows := []struct {
-		Day         time.Time `db:"day"`
-		DemandUnits int64     `db:"demand_units"`
-		SoldUnits   int64     `db:"sold_units"`
-		Revenue     string    `db:"revenue"`
-		GrossProfit string    `db:"gross_profit"`
+		Day            time.Time `db:"day"`
+		DemandUnits    int64     `db:"demand_units"`
+		SoldUnits      int64     `db:"sold_units"`
+		Revenue        string    `db:"revenue"`
+		GrossProfit    string    `db:"gross_profit"`
+		MarketplaceFee string    `db:"marketplace_fee"`
+		NetProfit      string    `db:"net_profit"`
 	}{}
 	err = r.analyticsDB.SelectContext(ctx, &trendRows, `
 		select
@@ -285,7 +314,9 @@ func (r *Repository) GetOverview(ctx context.Context, vendorID int64, dateRange 
 			coalesce(sum(demand_units), 0) as demand_units,
 			coalesce(sum(sold_units), 0) as sold_units,
 			coalesce(sum(revenue), 0)::text as revenue,
-			coalesce(sum(gross_profit), 0)::text as gross_profit
+			coalesce(sum(gross_profit), 0)::text as gross_profit,
+			coalesce(sum(marketplace_fee), 0)::text as marketplace_fee,
+			coalesce(sum(net_profit), 0)::text as net_profit
 		from daily_vendor_product_metrics
 		where vendor_id = $1
 			and day between $2 and $3
@@ -299,16 +330,25 @@ func (r *Repository) GetOverview(ctx context.Context, vendorID int64, dateRange 
 	trend := make([]domain.DailyTrendPoint, 0, len(trendRows))
 	for _, row := range trendRows {
 		trend = append(trend, domain.DailyTrendPoint{
-			Day:         row.Day.Format("2006-01-02"),
-			DemandUnits: row.DemandUnits,
-			SoldUnits:   row.SoldUnits,
-			Revenue:     normalizeMoneyText(row.Revenue),
-			GrossProfit: normalizeMoneyText(row.GrossProfit),
+			Day:            row.Day.Format("2006-01-02"),
+			DemandUnits:    row.DemandUnits,
+			SoldUnits:      row.SoldUnits,
+			Revenue:        normalizeMoneyText(row.Revenue),
+			GrossProfit:    normalizeMoneyText(row.GrossProfit),
+			MarketplaceFee: normalizeMoneyText(row.MarketplaceFee),
+			NetProfit:      normalizeMoneyText(row.NetProfit),
 		})
 	}
 
 	revenueWithCost := parseMoneyCents(kpiRow.CostCoveredRevenue)
 	grossProfit := parseMoneyCents(kpiRow.GrossProfit)
+	netProfit := parseMoneyCents(kpiRow.NetProfit)
+	revenue := parseMoneyCents(kpiRow.Revenue)
+
+	tariff, err := r.GetVendorTariff(ctx, vendorID)
+	if err != nil {
+		return domain.Overview{}, err
+	}
 
 	return domain.Overview{
 		KPI: domain.KPI{
@@ -318,10 +358,14 @@ func (r *Repository) GetOverview(ctx context.Context, vendorID int64, dateRange 
 			SalesCount:          kpiRow.SalesCount,
 			Revenue:             normalizeMoneyText(kpiRow.Revenue),
 			GrossProfit:         normalizeMoneyText(kpiRow.GrossProfit),
+			MarketplaceFee:      normalizeMoneyText(kpiRow.MarketplaceFee),
+			NetProfit:           normalizeMoneyText(kpiRow.NetProfit),
 			MarginPercent:       percent(grossProfit, revenueWithCost),
+			NetMarginPercent:    percent(netProfit, revenue),
 			CostCoveragePercent: percent(kpiRow.SoldUnitsWithCost, kpiRow.SoldUnits),
 		},
-		Trend: trend,
+		Trend:  trend,
+		Tariff: tariff,
 	}, nil
 }
 
@@ -343,6 +387,8 @@ func (r *Repository) GetProducts(ctx context.Context, vendorID int64, dateRange 
 		SoldUnits          int64  `db:"sold_units"`
 		Revenue            string `db:"revenue"`
 		GrossProfit        string `db:"gross_profit"`
+		MarketplaceFee     string `db:"marketplace_fee"`
+		NetProfit          string `db:"net_profit"`
 		CostCoveredRevenue string `db:"cost_covered_revenue"`
 	}{}
 	err = r.analyticsDB.SelectContext(ctx, &aggRows, `
@@ -353,6 +399,8 @@ func (r *Repository) GetProducts(ctx context.Context, vendorID int64, dateRange 
 			coalesce(sum(sold_units), 0) as sold_units,
 			coalesce(sum(revenue), 0)::text as revenue,
 			coalesce(sum(gross_profit), 0)::text as gross_profit,
+			coalesce(sum(marketplace_fee), 0)::text as marketplace_fee,
+			coalesce(sum(net_profit), 0)::text as net_profit,
 			coalesce(sum(cost_covered_revenue), 0)::text as cost_covered_revenue
 		from daily_vendor_product_metrics
 		where vendor_id = $1
@@ -367,15 +415,20 @@ func (r *Repository) GetProducts(ctx context.Context, vendorID int64, dateRange 
 	revenueWithCostByProduct := make(map[int64]int64, len(aggRows))
 	for _, row := range aggRows {
 		grossProfit := normalizeMoneyText(row.GrossProfit)
+		netProfit := normalizeMoneyText(row.NetProfit)
+		revenue := parseMoneyCents(row.Revenue)
 		revenueWithCost := parseMoneyCents(row.CostCoveredRevenue)
 		aggByProduct[row.ProductID] = domain.ProductMetric{
-			ProductID:     row.ProductID,
-			CategoryID:    row.CategoryID,
-			DemandUnits:   row.DemandUnits,
-			SoldUnits:     row.SoldUnits,
-			Revenue:       normalizeMoneyText(row.Revenue),
-			GrossProfit:   grossProfit,
-			MarginPercent: percent(parseMoneyCents(grossProfit), revenueWithCost),
+			ProductID:        row.ProductID,
+			CategoryID:       row.CategoryID,
+			DemandUnits:      row.DemandUnits,
+			SoldUnits:        row.SoldUnits,
+			Revenue:          normalizeMoneyText(row.Revenue),
+			GrossProfit:      grossProfit,
+			MarketplaceFee:   normalizeMoneyText(row.MarketplaceFee),
+			NetProfit:        netProfit,
+			MarginPercent:    percent(parseMoneyCents(grossProfit), revenueWithCost),
+			NetMarginPercent: percent(parseMoneyCents(netProfit), revenue),
 		}
 		revenueWithCostByProduct[row.ProductID] = revenueWithCost
 	}
@@ -407,8 +460,17 @@ func (r *Repository) GetProducts(ctx context.Context, vendorID int64, dateRange 
 		if metric.GrossProfit == "" {
 			metric.GrossProfit = "0.00"
 		}
+		if metric.MarketplaceFee == "" {
+			metric.MarketplaceFee = "0.00"
+		}
+		if metric.NetProfit == "" {
+			metric.NetProfit = "0.00"
+		}
 		if metric.MarginPercent == 0 && revenueWithCostByProduct[product.ID] > 0 {
 			metric.MarginPercent = percent(parseMoneyCents(metric.GrossProfit), revenueWithCostByProduct[product.ID])
+		}
+		if metric.NetMarginPercent == 0 && parseMoneyCents(metric.Revenue) > 0 {
+			metric.NetMarginPercent = percent(parseMoneyCents(metric.NetProfit), parseMoneyCents(metric.Revenue))
 		}
 
 		result = append(result, metric)
@@ -480,6 +542,8 @@ func (r *Repository) GetNiches(ctx context.Context, vendorID int64, dateRange do
 		SoldUnits          int64  `db:"sold_units"`
 		Revenue            string `db:"revenue"`
 		GrossProfit        string `db:"gross_profit"`
+		MarketplaceFee     string `db:"marketplace_fee"`
+		NetProfit          string `db:"net_profit"`
 		CostCoveredRevenue string `db:"cost_covered_revenue"`
 	}{}
 	err = r.analyticsDB.SelectContext(ctx, &ownRows, `
@@ -489,6 +553,8 @@ func (r *Repository) GetNiches(ctx context.Context, vendorID int64, dateRange do
 			coalesce(sum(sold_units), 0) as sold_units,
 			coalesce(sum(revenue), 0)::text as revenue,
 			coalesce(sum(gross_profit), 0)::text as gross_profit,
+			coalesce(sum(marketplace_fee), 0)::text as marketplace_fee,
+			coalesce(sum(net_profit), 0)::text as net_profit,
 			coalesce(sum(cost_covered_revenue), 0)::text as cost_covered_revenue
 		from daily_vendor_product_metrics
 		where vendor_id = $1
@@ -502,13 +568,17 @@ func (r *Repository) GetNiches(ctx context.Context, vendorID int64, dateRange do
 	ownByCategory := make(map[int64]domain.NicheMetric, len(ownRows))
 	for _, row := range ownRows {
 		grossProfit := normalizeMoneyText(row.GrossProfit)
+		netProfit := normalizeMoneyText(row.NetProfit)
 		ownByCategory[row.CategoryID] = domain.NicheMetric{
-			CategoryID:          row.CategoryID,
-			VendorDemandUnits:   row.DemandUnits,
-			VendorSoldUnits:     row.SoldUnits,
-			VendorRevenue:       normalizeMoneyText(row.Revenue),
-			VendorGrossProfit:   grossProfit,
-			VendorMarginPercent: percent(parseMoneyCents(grossProfit), parseMoneyCents(row.CostCoveredRevenue)),
+			CategoryID:             row.CategoryID,
+			VendorDemandUnits:      row.DemandUnits,
+			VendorSoldUnits:        row.SoldUnits,
+			VendorRevenue:          normalizeMoneyText(row.Revenue),
+			VendorGrossProfit:      grossProfit,
+			VendorMarketplaceFee:   normalizeMoneyText(row.MarketplaceFee),
+			VendorNetProfit:        netProfit,
+			VendorMarginPercent:    percent(parseMoneyCents(grossProfit), parseMoneyCents(row.CostCoveredRevenue)),
+			VendorNetMarginPercent: percent(parseMoneyCents(netProfit), parseMoneyCents(row.Revenue)),
 		}
 	}
 
@@ -516,20 +586,23 @@ func (r *Repository) GetNiches(ctx context.Context, vendorID int64, dateRange do
 	for _, row := range marketRows {
 		own := ownByCategory[row.CategoryID]
 		metric := domain.NicheMetric{
-			CategoryID:          row.CategoryID,
-			CategoryName:        categoryName(categories, row.CategoryID),
-			MarketDemandUnits:   row.DemandUnits,
-			MarketSoldUnits:     row.SoldUnits,
-			MarketRevenue:       normalizeMoneyText(row.Revenue),
-			ActiveProducts:      row.ActiveProducts,
-			StockCount:          row.StockCount,
-			VendorsCount:        row.VendorsCount,
-			OpportunityScore:    round2(float64(row.DemandUnits) / float64(row.ActiveProducts+1)),
-			VendorDemandUnits:   own.VendorDemandUnits,
-			VendorSoldUnits:     own.VendorSoldUnits,
-			VendorRevenue:       nonEmptyMoney(own.VendorRevenue),
-			VendorGrossProfit:   nonEmptyMoney(own.VendorGrossProfit),
-			VendorMarginPercent: own.VendorMarginPercent,
+			CategoryID:             row.CategoryID,
+			CategoryName:           categoryName(categories, row.CategoryID),
+			MarketDemandUnits:      row.DemandUnits,
+			MarketSoldUnits:        row.SoldUnits,
+			MarketRevenue:          normalizeMoneyText(row.Revenue),
+			ActiveProducts:         row.ActiveProducts,
+			StockCount:             row.StockCount,
+			VendorsCount:           row.VendorsCount,
+			OpportunityScore:       round2(float64(row.DemandUnits) / float64(row.ActiveProducts+1)),
+			VendorDemandUnits:      own.VendorDemandUnits,
+			VendorSoldUnits:        own.VendorSoldUnits,
+			VendorRevenue:          nonEmptyMoney(own.VendorRevenue),
+			VendorGrossProfit:      nonEmptyMoney(own.VendorGrossProfit),
+			VendorMarketplaceFee:   nonEmptyMoney(own.VendorMarketplaceFee),
+			VendorNetProfit:        nonEmptyMoney(own.VendorNetProfit),
+			VendorMarginPercent:    own.VendorMarginPercent,
+			VendorNetMarginPercent: own.VendorNetMarginPercent,
 		}
 		result = append(result, metric)
 	}
@@ -566,6 +639,140 @@ func (r *Repository) UpsertProductCost(ctx context.Context, cost domain.ProductC
 			updated_at = now()
 	`, cost.VendorID, cost.ProductID, cost.CostPrice, cost.Currency)
 	return err
+}
+
+func (r *Repository) ListTariffs(ctx context.Context) ([]domain.Tariff, error) {
+	rows := []tariffRow{}
+	err := r.analyticsDB.SelectContext(ctx, &rows, `
+		select
+			t.id,
+			t.name,
+			t.commission_percent::text as commission_percent,
+			t.is_default,
+			t.created_at,
+			t.updated_at,
+			count(a.vendor_id) as assigned_vendors
+		from vendor_tariffs t
+		left join vendor_tariff_assignments a on a.tariff_id = t.id
+		group by t.id
+		order by t.is_default desc, t.id
+	`)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]domain.Tariff, 0, len(rows))
+	for _, row := range rows {
+		result = append(result, tariffFromRow(row))
+	}
+	return result, nil
+}
+
+func (r *Repository) CreateTariff(ctx context.Context, tariff domain.Tariff) (domain.Tariff, error) {
+	row := tariffRow{}
+	err := r.analyticsDB.GetContext(ctx, &row, `
+		insert into vendor_tariffs (name, commission_percent, is_default)
+		values ($1, $2, false)
+		returning id, name, commission_percent::text as commission_percent, is_default, created_at, updated_at, 0::bigint as assigned_vendors
+	`, tariff.Name, tariff.CommissionPercent)
+	if err != nil {
+		return domain.Tariff{}, err
+	}
+	return tariffFromRow(row), nil
+}
+
+func (r *Repository) UpdateTariff(ctx context.Context, tariff domain.Tariff) (domain.Tariff, error) {
+	row := tariffRow{}
+	err := r.analyticsDB.GetContext(ctx, &row, `
+		update vendor_tariffs
+		set name = $2,
+			commission_percent = $3,
+			updated_at = now()
+		where id = $1
+		returning id, name, commission_percent::text as commission_percent, is_default, created_at, updated_at,
+			(select count(*) from vendor_tariff_assignments where tariff_id = vendor_tariffs.id)::bigint as assigned_vendors
+	`, tariff.ID, tariff.Name, tariff.CommissionPercent)
+	if err != nil {
+		return domain.Tariff{}, err
+	}
+	return tariffFromRow(row), nil
+}
+
+func (r *Repository) SetDefaultTariff(ctx context.Context, tariffID int64) (domain.Tariff, error) {
+	tx, err := r.analyticsDB.BeginTxx(ctx, nil)
+	if err != nil {
+		return domain.Tariff{}, err
+	}
+	defer func() {
+		_ = tx.Rollback()
+	}()
+
+	result, err := tx.ExecContext(ctx, `update vendor_tariffs set is_default = false, updated_at = now() where is_default`)
+	if err != nil {
+		return domain.Tariff{}, err
+	}
+	_ = result
+
+	row := tariffRow{}
+	err = tx.GetContext(ctx, &row, `
+		update vendor_tariffs
+		set is_default = true,
+			updated_at = now()
+		where id = $1
+		returning id, name, commission_percent::text as commission_percent, is_default, created_at, updated_at,
+			(select count(*) from vendor_tariff_assignments where tariff_id = vendor_tariffs.id)::bigint as assigned_vendors
+	`, tariffID)
+	if err != nil {
+		return domain.Tariff{}, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return domain.Tariff{}, err
+	}
+	return tariffFromRow(row), nil
+}
+
+func (r *Repository) AssignVendorTariff(ctx context.Context, vendorID int64, tariffID int64) (domain.VendorTariffAssignment, error) {
+	_, err := r.analyticsDB.ExecContext(ctx, `
+		insert into vendor_tariff_assignments (vendor_id, tariff_id, created_at, updated_at)
+		values ($1, $2, now(), now())
+		on conflict (vendor_id)
+		do update set
+			tariff_id = excluded.tariff_id,
+			updated_at = now()
+	`, vendorID, tariffID)
+	if err != nil {
+		return domain.VendorTariffAssignment{}, err
+	}
+
+	tariff, err := r.GetVendorTariff(ctx, vendorID)
+	if err != nil {
+		return domain.VendorTariffAssignment{}, err
+	}
+	return domain.VendorTariffAssignment{VendorID: vendorID, Tariff: tariff}, nil
+}
+
+func (r *Repository) GetVendorTariff(ctx context.Context, vendorID int64) (domain.Tariff, error) {
+	row := tariffRow{}
+	err := r.analyticsDB.GetContext(ctx, &row, `
+		select
+			t.id,
+			t.name,
+			t.commission_percent::text as commission_percent,
+			t.is_default,
+			t.created_at,
+			t.updated_at,
+			(select count(*) from vendor_tariff_assignments where tariff_id = t.id)::bigint as assigned_vendors
+		from vendor_tariffs t
+		left join vendor_tariff_assignments a on a.tariff_id = t.id and a.vendor_id = $1
+		where a.vendor_id is not null or t.is_default
+		order by (a.vendor_id is not null) desc
+		limit 1
+	`, vendorID)
+	if err != nil {
+		return domain.Tariff{}, err
+	}
+	return tariffFromRow(row), nil
 }
 
 func (r *Repository) VendorOwnsProduct(ctx context.Context, vendorID int64, productID int64) (bool, error) {
@@ -628,33 +835,52 @@ func (r *Repository) GetSalesReportRows(ctx context.Context, vendorID int64, dat
 		costByProduct[costKey(cost.VendorID, cost.ProductID)] = normalizeMoneyText(cost.CostPrice)
 	}
 
+	tariffs, err := r.selectVendorTariffRates(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	rows := make([]domain.SalesReportRow, 0, len(orders))
 	for _, order := range orders {
 		product := productByID[order.ProductID]
 		cost := costByProduct[costKey(order.VendorID, order.ProductID)]
 		grossProfit := "0.00"
+		fee := "0.00"
+		netProfit := "0.00"
 		margin := 0.0
+		netMargin := 0.0
 
-		if isSuccessStatus(order.Status) && cost != "" {
+		if isSuccessStatus(order.Status) {
 			revenueCents := parseMoneyCents(order.TotalPrice)
-			costTotalCents := parseMoneyCents(cost) * order.Quantity
-			grossProfit = formatCents(revenueCents - costTotalCents)
-			margin = percent(parseMoneyCents(grossProfit), revenueCents)
+			feeCents := calculatePercentCents(revenueCents, tariffs, order.VendorID)
+			netProfitCents := revenueCents - feeCents
+			fee = formatCents(feeCents)
+			if cost != "" {
+				costTotalCents := parseMoneyCents(cost) * order.Quantity
+				grossProfit = formatCents(revenueCents - costTotalCents)
+				netProfitCents -= costTotalCents
+				margin = percent(parseMoneyCents(grossProfit), revenueCents)
+			}
+			netProfit = formatCents(netProfitCents)
+			netMargin = percent(netProfitCents, revenueCents)
 		}
 
 		rows = append(rows, domain.SalesReportRow{
-			Day:           order.CreatedAt.Format("2006-01-02"),
-			OrderID:       order.ID,
-			Status:        order.Status,
-			ProductID:     order.ProductID,
-			ProductName:   order.ProductName,
-			CategoryName:  product.CategoryName,
-			Quantity:      order.Quantity,
-			UnitPrice:     normalizeMoneyText(order.UnitPrice),
-			TotalPrice:    normalizeMoneyText(order.TotalPrice),
-			CostPrice:     cost,
-			GrossProfit:   grossProfit,
-			MarginPercent: margin,
+			Day:              order.CreatedAt.Format("2006-01-02"),
+			OrderID:          order.ID,
+			Status:           order.Status,
+			ProductID:        order.ProductID,
+			ProductName:      order.ProductName,
+			CategoryName:     product.CategoryName,
+			Quantity:         order.Quantity,
+			UnitPrice:        normalizeMoneyText(order.UnitPrice),
+			TotalPrice:       normalizeMoneyText(order.TotalPrice),
+			CostPrice:        cost,
+			GrossProfit:      grossProfit,
+			MarketplaceFee:   fee,
+			NetProfit:        netProfit,
+			MarginPercent:    margin,
+			NetMarginPercent: netMargin,
 		})
 	}
 
@@ -721,6 +947,42 @@ func (r *Repository) selectCosts(ctx context.Context) ([]costRow, error) {
 		from vendor_product_costs
 	`)
 	return costs, err
+}
+
+func (r *Repository) selectVendorTariffRates(ctx context.Context) (map[int64]int64, error) {
+	rows := []struct {
+		VendorID          int64  `db:"vendor_id"`
+		CommissionPercent string `db:"commission_percent"`
+	}{}
+	err := r.analyticsDB.SelectContext(ctx, &rows, `
+		select
+			a.vendor_id,
+			t.commission_percent::text as commission_percent
+		from vendor_tariff_assignments a
+		join vendor_tariffs t on t.id = a.tariff_id
+	`)
+	if err != nil {
+		return nil, err
+	}
+
+	defaultRate := int64(0)
+	var defaultText string
+	err = r.analyticsDB.GetContext(ctx, &defaultText, `
+		select commission_percent::text
+		from vendor_tariffs
+		where is_default
+		order by id
+		limit 1
+	`)
+	if err == nil {
+		defaultRate = parsePercentBasisPoints(defaultText)
+	}
+
+	result := map[int64]int64{0: defaultRate}
+	for _, row := range rows {
+		result[row.VendorID] = parsePercentBasisPoints(row.CommissionPercent)
+	}
+	return result, nil
 }
 
 type supplyItem struct {
@@ -828,6 +1090,30 @@ func percent(numerator int64, denominator int64) float64 {
 		return 0
 	}
 	return round2(float64(numerator) / float64(denominator) * 100)
+}
+
+func parsePercentBasisPoints(value string) int64 {
+	return parseMoneyCents(value)
+}
+
+func calculatePercentCents(amountCents int64, percentByVendor map[int64]int64, vendorID int64) int64 {
+	rate, ok := percentByVendor[vendorID]
+	if !ok {
+		rate = percentByVendor[0]
+	}
+	return int64(math.Round(float64(amountCents) * float64(rate) / 10000))
+}
+
+func tariffFromRow(row tariffRow) domain.Tariff {
+	return domain.Tariff{
+		ID:                row.ID,
+		Name:              row.Name,
+		CommissionPercent: normalizeMoneyText(row.CommissionPercent),
+		IsDefault:         row.IsDefault,
+		AssignedVendors:   row.AssignedVendors,
+		CreatedAt:         row.CreatedAt,
+		UpdatedAt:         row.UpdatedAt,
+	}
 }
 
 func round2(value float64) float64 {

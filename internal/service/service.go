@@ -27,6 +27,12 @@ type repository interface {
 	GetNiches(ctx context.Context, vendorID int64, dateRange domain.DateRange, sortKey string, limit int) ([]domain.NicheMetric, error)
 	GetProducts(ctx context.Context, vendorID int64, dateRange domain.DateRange) ([]domain.ProductMetric, error)
 	UpsertProductCost(ctx context.Context, cost domain.ProductCost) error
+	ListTariffs(ctx context.Context) ([]domain.Tariff, error)
+	CreateTariff(ctx context.Context, tariff domain.Tariff) (domain.Tariff, error)
+	UpdateTariff(ctx context.Context, tariff domain.Tariff) (domain.Tariff, error)
+	SetDefaultTariff(ctx context.Context, tariffID int64) (domain.Tariff, error)
+	AssignVendorTariff(ctx context.Context, vendorID int64, tariffID int64) (domain.VendorTariffAssignment, error)
+	GetVendorTariff(ctx context.Context, vendorID int64) (domain.Tariff, error)
 	VendorOwnsProduct(ctx context.Context, vendorID int64, productID int64) (bool, error)
 	GetSalesReportRows(ctx context.Context, vendorID int64, dateRange domain.DateRange, limit int) ([]domain.SalesReportRow, error)
 }
@@ -123,6 +129,74 @@ func (s *Service) UpsertProductCost(ctx context.Context, cost domain.ProductCost
 	}
 
 	return domain.ProductMetric{}, ErrNotFound
+}
+
+func (s *Service) ListTariffs(ctx context.Context) ([]domain.Tariff, error) {
+	return s.repository.ListTariffs(ctx)
+}
+
+func (s *Service) CreateTariff(ctx context.Context, tariff domain.Tariff) (domain.Tariff, error) {
+	normalized, err := normalizeTariff(tariff)
+	if err != nil {
+		return domain.Tariff{}, err
+	}
+	created, err := s.repository.CreateTariff(ctx, normalized)
+	if err != nil {
+		return domain.Tariff{}, err
+	}
+	_ = s.repository.RefreshAggregates(ctx)
+	return created, nil
+}
+
+func (s *Service) UpdateTariff(ctx context.Context, tariff domain.Tariff) (domain.Tariff, error) {
+	if tariff.ID <= 0 {
+		return domain.Tariff{}, fmt.Errorf("%w: tariff_id must be positive", ErrInvalidArgument)
+	}
+	normalized, err := normalizeTariff(tariff)
+	if err != nil {
+		return domain.Tariff{}, err
+	}
+	normalized.ID = tariff.ID
+	updated, err := s.repository.UpdateTariff(ctx, normalized)
+	if err != nil {
+		return domain.Tariff{}, err
+	}
+	_ = s.repository.RefreshAggregates(ctx)
+	return updated, nil
+}
+
+func (s *Service) SetDefaultTariff(ctx context.Context, tariffID int64) (domain.Tariff, error) {
+	if tariffID <= 0 {
+		return domain.Tariff{}, fmt.Errorf("%w: tariff_id must be positive", ErrInvalidArgument)
+	}
+	tariff, err := s.repository.SetDefaultTariff(ctx, tariffID)
+	if err != nil {
+		return domain.Tariff{}, err
+	}
+	_ = s.repository.RefreshAggregates(ctx)
+	return tariff, nil
+}
+
+func (s *Service) AssignVendorTariff(ctx context.Context, vendorID int64, tariffID int64) (domain.VendorTariffAssignment, error) {
+	if vendorID <= 0 {
+		return domain.VendorTariffAssignment{}, fmt.Errorf("%w: vendor_id must be positive", ErrInvalidArgument)
+	}
+	if tariffID <= 0 {
+		return domain.VendorTariffAssignment{}, fmt.Errorf("%w: tariff_id must be positive", ErrInvalidArgument)
+	}
+	assignment, err := s.repository.AssignVendorTariff(ctx, vendorID, tariffID)
+	if err != nil {
+		return domain.VendorTariffAssignment{}, err
+	}
+	_ = s.repository.RefreshAggregates(ctx)
+	return assignment, nil
+}
+
+func (s *Service) GetVendorTariff(ctx context.Context, vendorID int64) (domain.Tariff, error) {
+	if vendorID <= 0 {
+		return domain.Tariff{}, fmt.Errorf("%w: vendor_id must be positive", ErrInvalidArgument)
+	}
+	return s.repository.GetVendorTariff(ctx, vendorID)
 }
 
 func (s *Service) ExportSalesReport(ctx context.Context, vendorID int64, from string, to string, format string) (domain.SalesReport, error) {
@@ -224,6 +298,31 @@ func normalizeCost(value string) (string, error) {
 	return strconv.FormatFloat(parsed, 'f', 2, 64), nil
 }
 
+func normalizeTariff(tariff domain.Tariff) (domain.Tariff, error) {
+	tariff.Name = strings.TrimSpace(tariff.Name)
+	if tariff.Name == "" {
+		return domain.Tariff{}, fmt.Errorf("%w: tariff name is required", ErrInvalidArgument)
+	}
+
+	normalizedPercent, err := normalizePercent(tariff.CommissionPercent)
+	if err != nil {
+		return domain.Tariff{}, err
+	}
+	tariff.CommissionPercent = normalizedPercent
+	return tariff, nil
+}
+
+func normalizePercent(value string) (string, error) {
+	normalized := strings.ReplaceAll(strings.TrimSpace(value), " ", "")
+	normalized = strings.TrimSuffix(normalized, "%")
+	normalized = strings.ReplaceAll(normalized, ",", ".")
+	parsed, err := strconv.ParseFloat(normalized, 64)
+	if err != nil || parsed < 0 || parsed > 100 {
+		return "", fmt.Errorf("%w: commission_percent must be between 0 and 100", ErrInvalidArgument)
+	}
+	return strconv.FormatFloat(parsed, 'f', 2, 64), nil
+}
+
 func buildCSVReport(rows []domain.SalesReportRow) ([]byte, error) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteString("\xEF\xBB\xBF")
@@ -294,7 +393,10 @@ func reportHeaders() []string {
 		"Сумма",
 		"Себестоимость",
 		"Валовая прибыль",
+		"Комиссия маркетплейса",
+		"Чистая прибыль",
 		"Маржа, %",
+		"Чистая маржа, %",
 	}
 }
 
@@ -311,6 +413,9 @@ func reportRecord(row domain.SalesReportRow) []string {
 		row.TotalPrice,
 		row.CostPrice,
 		row.GrossProfit,
+		row.MarketplaceFee,
+		row.NetProfit,
 		strconv.FormatFloat(row.MarginPercent, 'f', 2, 64),
+		strconv.FormatFloat(row.NetMarginPercent, 'f', 2, 64),
 	}
 }
