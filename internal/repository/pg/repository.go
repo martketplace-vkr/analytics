@@ -340,6 +340,46 @@ func (r *Repository) GetOverview(ctx context.Context, vendorID int64, dateRange 
 		})
 	}
 
+	productTrendRows := []struct {
+		ProductID   int64     `db:"product_id"`
+		ProductName string    `db:"product_name"`
+		Day         time.Time `db:"day"`
+		SoldUnits   int64     `db:"sold_units"`
+	}{}
+	err = r.analyticsDB.SelectContext(ctx, &productTrendRows, `
+		select
+			product_id,
+			max(product_name) as product_name,
+			day,
+			coalesce(sum(sold_units), 0) as sold_units
+		from daily_vendor_product_metrics
+		where vendor_id = $1
+			and day between $2 and $3
+		group by product_id, day
+		order by product_id, day
+	`, vendorID, dateRange.From, dateRange.To)
+	if err != nil {
+		return domain.Overview{}, err
+	}
+
+	productTrends := make([]domain.ProductDailyTrend, 0)
+	productTrendIndex := make(map[int64]int)
+	for _, row := range productTrendRows {
+		index, ok := productTrendIndex[row.ProductID]
+		if !ok {
+			index = len(productTrends)
+			productTrendIndex[row.ProductID] = index
+			productTrends = append(productTrends, domain.ProductDailyTrend{
+				ProductID:   row.ProductID,
+				ProductName: row.ProductName,
+			})
+		}
+		productTrends[index].Points = append(productTrends[index].Points, domain.ProductDailyTrendPoint{
+			Day:       row.Day.Format("2006-01-02"),
+			SoldUnits: row.SoldUnits,
+		})
+	}
+
 	revenueWithCost := parseMoneyCents(kpiRow.CostCoveredRevenue)
 	grossProfit := parseMoneyCents(kpiRow.GrossProfit)
 	netProfit := parseMoneyCents(kpiRow.NetProfit)
@@ -364,8 +404,9 @@ func (r *Repository) GetOverview(ctx context.Context, vendorID int64, dateRange 
 			NetMarginPercent:    percent(netProfit, revenue),
 			CostCoveragePercent: percent(kpiRow.SoldUnitsWithCost, kpiRow.SoldUnits),
 		},
-		Trend:  trend,
-		Tariff: tariff,
+		Trend:         trend,
+		ProductTrends: productTrends,
+		Tariff:        tariff,
 	}, nil
 }
 

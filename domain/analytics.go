@@ -31,10 +31,22 @@ type DailyTrendPoint struct {
 	NetProfit      string
 }
 
+type ProductDailyTrend struct {
+	ProductID   int64
+	ProductName string
+	Points      []ProductDailyTrendPoint
+}
+
+type ProductDailyTrendPoint struct {
+	Day       string
+	SoldUnits int64
+}
+
 type Overview struct {
-	KPI    KPI
-	Trend  []DailyTrendPoint
-	Tariff Tariff
+	KPI           KPI
+	Trend         []DailyTrendPoint
+	ProductTrends []ProductDailyTrend
+	Tariff        Tariff
 }
 
 type NicheMetric struct {

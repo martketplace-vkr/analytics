@@ -86,6 +86,7 @@ type GetOverviewResponse struct {
 	Kpi           *AnalyticsKpi          `protobuf:"bytes,1,opt,name=kpi,proto3" json:"kpi,omitempty"`
 	Trend         []*DailyTrendPoint     `protobuf:"bytes,2,rep,name=trend,proto3" json:"trend,omitempty"`
 	Tariff        *Tariff                `protobuf:"bytes,3,opt,name=tariff,proto3" json:"tariff,omitempty"`
+	ProductTrends []*ProductDailyTrend   `protobuf:"bytes,4,rep,name=product_trends,json=productTrends,proto3" json:"product_trends,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -137,6 +138,13 @@ func (x *GetOverviewResponse) GetTrend() []*DailyTrendPoint {
 func (x *GetOverviewResponse) GetTariff() *Tariff {
 	if x != nil {
 		return x.Tariff
+	}
+	return nil
+}
+
+func (x *GetOverviewResponse) GetProductTrends() []*ProductDailyTrend {
+	if x != nil {
+		return x.ProductTrends
 	}
 	return nil
 }
@@ -357,6 +365,118 @@ func (x *DailyTrendPoint) GetNetProfit() string {
 	return ""
 }
 
+type ProductDailyTrend struct {
+	state         protoimpl.MessageState    `protogen:"open.v1"`
+	ProductId     int64                     `protobuf:"varint,1,opt,name=product_id,json=productId,proto3" json:"product_id,omitempty"`
+	ProductName   string                    `protobuf:"bytes,2,opt,name=product_name,json=productName,proto3" json:"product_name,omitempty"`
+	Points        []*ProductDailyTrendPoint `protobuf:"bytes,3,rep,name=points,proto3" json:"points,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ProductDailyTrend) Reset() {
+	*x = ProductDailyTrend{}
+	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProductDailyTrend) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProductDailyTrend) ProtoMessage() {}
+
+func (x *ProductDailyTrend) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProductDailyTrend.ProtoReflect.Descriptor instead.
+func (*ProductDailyTrend) Descriptor() ([]byte, []int) {
+	return file_v1_vendor_analytics_vendor_service_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *ProductDailyTrend) GetProductId() int64 {
+	if x != nil {
+		return x.ProductId
+	}
+	return 0
+}
+
+func (x *ProductDailyTrend) GetProductName() string {
+	if x != nil {
+		return x.ProductName
+	}
+	return ""
+}
+
+func (x *ProductDailyTrend) GetPoints() []*ProductDailyTrendPoint {
+	if x != nil {
+		return x.Points
+	}
+	return nil
+}
+
+type ProductDailyTrendPoint struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Day           string                 `protobuf:"bytes,1,opt,name=day,proto3" json:"day,omitempty"`
+	SoldUnits     int64                  `protobuf:"varint,2,opt,name=sold_units,json=soldUnits,proto3" json:"sold_units,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ProductDailyTrendPoint) Reset() {
+	*x = ProductDailyTrendPoint{}
+	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProductDailyTrendPoint) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProductDailyTrendPoint) ProtoMessage() {}
+
+func (x *ProductDailyTrendPoint) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProductDailyTrendPoint.ProtoReflect.Descriptor instead.
+func (*ProductDailyTrendPoint) Descriptor() ([]byte, []int) {
+	return file_v1_vendor_analytics_vendor_service_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *ProductDailyTrendPoint) GetDay() string {
+	if x != nil {
+		return x.Day
+	}
+	return ""
+}
+
+func (x *ProductDailyTrendPoint) GetSoldUnits() int64 {
+	if x != nil {
+		return x.SoldUnits
+	}
+	return 0
+}
+
 type GetNichesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	VendorId      int64                  `protobuf:"varint,1,opt,name=vendor_id,json=vendorId,proto3" json:"vendor_id,omitempty"`
@@ -370,7 +490,7 @@ type GetNichesRequest struct {
 
 func (x *GetNichesRequest) Reset() {
 	*x = GetNichesRequest{}
-	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[4]
+	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -382,7 +502,7 @@ func (x *GetNichesRequest) String() string {
 func (*GetNichesRequest) ProtoMessage() {}
 
 func (x *GetNichesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[4]
+	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -395,7 +515,7 @@ func (x *GetNichesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNichesRequest.ProtoReflect.Descriptor instead.
 func (*GetNichesRequest) Descriptor() ([]byte, []int) {
-	return file_v1_vendor_analytics_vendor_service_proto_rawDescGZIP(), []int{4}
+	return file_v1_vendor_analytics_vendor_service_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *GetNichesRequest) GetVendorId() int64 {
@@ -442,7 +562,7 @@ type GetNichesResponse struct {
 
 func (x *GetNichesResponse) Reset() {
 	*x = GetNichesResponse{}
-	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[5]
+	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -454,7 +574,7 @@ func (x *GetNichesResponse) String() string {
 func (*GetNichesResponse) ProtoMessage() {}
 
 func (x *GetNichesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[5]
+	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -467,7 +587,7 @@ func (x *GetNichesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNichesResponse.ProtoReflect.Descriptor instead.
 func (*GetNichesResponse) Descriptor() ([]byte, []int) {
-	return file_v1_vendor_analytics_vendor_service_proto_rawDescGZIP(), []int{5}
+	return file_v1_vendor_analytics_vendor_service_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *GetNichesResponse) GetNiches() []*NicheMetric {
@@ -502,7 +622,7 @@ type NicheMetric struct {
 
 func (x *NicheMetric) Reset() {
 	*x = NicheMetric{}
-	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[6]
+	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -514,7 +634,7 @@ func (x *NicheMetric) String() string {
 func (*NicheMetric) ProtoMessage() {}
 
 func (x *NicheMetric) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[6]
+	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -527,7 +647,7 @@ func (x *NicheMetric) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NicheMetric.ProtoReflect.Descriptor instead.
 func (*NicheMetric) Descriptor() ([]byte, []int) {
-	return file_v1_vendor_analytics_vendor_service_proto_rawDescGZIP(), []int{6}
+	return file_v1_vendor_analytics_vendor_service_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *NicheMetric) GetCategoryId() int64 {
@@ -660,7 +780,7 @@ type GetProductsRequest struct {
 
 func (x *GetProductsRequest) Reset() {
 	*x = GetProductsRequest{}
-	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[7]
+	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -672,7 +792,7 @@ func (x *GetProductsRequest) String() string {
 func (*GetProductsRequest) ProtoMessage() {}
 
 func (x *GetProductsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[7]
+	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -685,7 +805,7 @@ func (x *GetProductsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProductsRequest.ProtoReflect.Descriptor instead.
 func (*GetProductsRequest) Descriptor() ([]byte, []int) {
-	return file_v1_vendor_analytics_vendor_service_proto_rawDescGZIP(), []int{7}
+	return file_v1_vendor_analytics_vendor_service_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *GetProductsRequest) GetVendorId() int64 {
@@ -718,7 +838,7 @@ type GetProductsResponse struct {
 
 func (x *GetProductsResponse) Reset() {
 	*x = GetProductsResponse{}
-	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[8]
+	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -730,7 +850,7 @@ func (x *GetProductsResponse) String() string {
 func (*GetProductsResponse) ProtoMessage() {}
 
 func (x *GetProductsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[8]
+	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -743,7 +863,7 @@ func (x *GetProductsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProductsResponse.ProtoReflect.Descriptor instead.
 func (*GetProductsResponse) Descriptor() ([]byte, []int) {
-	return file_v1_vendor_analytics_vendor_service_proto_rawDescGZIP(), []int{8}
+	return file_v1_vendor_analytics_vendor_service_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *GetProductsResponse) GetProducts() []*ProductMetric {
@@ -777,7 +897,7 @@ type ProductMetric struct {
 
 func (x *ProductMetric) Reset() {
 	*x = ProductMetric{}
-	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[9]
+	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -789,7 +909,7 @@ func (x *ProductMetric) String() string {
 func (*ProductMetric) ProtoMessage() {}
 
 func (x *ProductMetric) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[9]
+	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -802,7 +922,7 @@ func (x *ProductMetric) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProductMetric.ProtoReflect.Descriptor instead.
 func (*ProductMetric) Descriptor() ([]byte, []int) {
-	return file_v1_vendor_analytics_vendor_service_proto_rawDescGZIP(), []int{9}
+	return file_v1_vendor_analytics_vendor_service_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ProductMetric) GetProductId() int64 {
@@ -928,7 +1048,7 @@ type UpsertProductCostRequest struct {
 
 func (x *UpsertProductCostRequest) Reset() {
 	*x = UpsertProductCostRequest{}
-	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[10]
+	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -940,7 +1060,7 @@ func (x *UpsertProductCostRequest) String() string {
 func (*UpsertProductCostRequest) ProtoMessage() {}
 
 func (x *UpsertProductCostRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[10]
+	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -953,7 +1073,7 @@ func (x *UpsertProductCostRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpsertProductCostRequest.ProtoReflect.Descriptor instead.
 func (*UpsertProductCostRequest) Descriptor() ([]byte, []int) {
-	return file_v1_vendor_analytics_vendor_service_proto_rawDescGZIP(), []int{10}
+	return file_v1_vendor_analytics_vendor_service_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *UpsertProductCostRequest) GetVendorId() int64 {
@@ -986,7 +1106,7 @@ type UpsertProductCostResponse struct {
 
 func (x *UpsertProductCostResponse) Reset() {
 	*x = UpsertProductCostResponse{}
-	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[11]
+	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -998,7 +1118,7 @@ func (x *UpsertProductCostResponse) String() string {
 func (*UpsertProductCostResponse) ProtoMessage() {}
 
 func (x *UpsertProductCostResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[11]
+	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1011,7 +1131,7 @@ func (x *UpsertProductCostResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpsertProductCostResponse.ProtoReflect.Descriptor instead.
 func (*UpsertProductCostResponse) Descriptor() ([]byte, []int) {
-	return file_v1_vendor_analytics_vendor_service_proto_rawDescGZIP(), []int{11}
+	return file_v1_vendor_analytics_vendor_service_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *UpsertProductCostResponse) GetProduct() *ProductMetric {
@@ -1033,7 +1153,7 @@ type ExportSalesReportRequest struct {
 
 func (x *ExportSalesReportRequest) Reset() {
 	*x = ExportSalesReportRequest{}
-	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[12]
+	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1045,7 +1165,7 @@ func (x *ExportSalesReportRequest) String() string {
 func (*ExportSalesReportRequest) ProtoMessage() {}
 
 func (x *ExportSalesReportRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[12]
+	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1058,7 +1178,7 @@ func (x *ExportSalesReportRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExportSalesReportRequest.ProtoReflect.Descriptor instead.
 func (*ExportSalesReportRequest) Descriptor() ([]byte, []int) {
-	return file_v1_vendor_analytics_vendor_service_proto_rawDescGZIP(), []int{12}
+	return file_v1_vendor_analytics_vendor_service_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ExportSalesReportRequest) GetVendorId() int64 {
@@ -1100,7 +1220,7 @@ type ExportSalesReportResponse struct {
 
 func (x *ExportSalesReportResponse) Reset() {
 	*x = ExportSalesReportResponse{}
-	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[13]
+	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1112,7 +1232,7 @@ func (x *ExportSalesReportResponse) String() string {
 func (*ExportSalesReportResponse) ProtoMessage() {}
 
 func (x *ExportSalesReportResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[13]
+	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1125,7 +1245,7 @@ func (x *ExportSalesReportResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExportSalesReportResponse.ProtoReflect.Descriptor instead.
 func (*ExportSalesReportResponse) Descriptor() ([]byte, []int) {
-	return file_v1_vendor_analytics_vendor_service_proto_rawDescGZIP(), []int{13}
+	return file_v1_vendor_analytics_vendor_service_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ExportSalesReportResponse) GetContent() []byte {
@@ -1164,7 +1284,7 @@ type Tariff struct {
 
 func (x *Tariff) Reset() {
 	*x = Tariff{}
-	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[14]
+	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1176,7 +1296,7 @@ func (x *Tariff) String() string {
 func (*Tariff) ProtoMessage() {}
 
 func (x *Tariff) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[14]
+	mi := &file_v1_vendor_analytics_vendor_service_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1189,7 +1309,7 @@ func (x *Tariff) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Tariff.ProtoReflect.Descriptor instead.
 func (*Tariff) Descriptor() ([]byte, []int) {
-	return file_v1_vendor_analytics_vendor_service_proto_rawDescGZIP(), []int{14}
+	return file_v1_vendor_analytics_vendor_service_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *Tariff) GetId() int64 {
@@ -1249,11 +1369,12 @@ const file_v1_vendor_analytics_vendor_service_proto_rawDesc = "" +
 	"\x12GetOverviewRequest\x12\x1b\n" +
 	"\tvendor_id\x18\x01 \x01(\x03R\bvendorId\x12\x12\n" +
 	"\x04from\x18\x02 \x01(\tR\x04from\x12\x0e\n" +
-	"\x02to\x18\x03 \x01(\tR\x02to\"\xb6\x02\n" +
+	"\x02to\x18\x03 \x01(\tR\x02to\"\xae\x03\n" +
 	"\x13GetOverviewResponse\x12\\\n" +
 	"\x03kpi\x18\x01 \x01(\v2J.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsKpiR\x03kpi\x12c\n" +
 	"\x05trend\x18\x02 \x03(\v2M.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.DailyTrendPointR\x05trend\x12\\\n" +
-	"\x06tariff\x18\x03 \x01(\v2D.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.TariffR\x06tariff\"\xa2\x03\n" +
+	"\x06tariff\x18\x03 \x01(\v2D.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.TariffR\x06tariff\x12v\n" +
+	"\x0eproduct_trends\x18\x04 \x03(\v2O.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ProductDailyTrendR\rproductTrends\"\xa2\x03\n" +
 	"\fAnalyticsKpi\x12!\n" +
 	"\fdemand_units\x18\x01 \x01(\x03R\vdemandUnits\x12\x1d\n" +
 	"\n" +
@@ -1279,7 +1400,16 @@ const file_v1_vendor_analytics_vendor_service_proto_rawDesc = "" +
 	"\fgross_profit\x18\x05 \x01(\tR\vgrossProfit\x12'\n" +
 	"\x0fmarketplace_fee\x18\x06 \x01(\tR\x0emarketplaceFee\x12\x1d\n" +
 	"\n" +
-	"net_profit\x18\a \x01(\tR\tnetProfit\"}\n" +
+	"net_profit\x18\a \x01(\tR\tnetProfit\"\xc3\x01\n" +
+	"\x11ProductDailyTrend\x12\x1d\n" +
+	"\n" +
+	"product_id\x18\x01 \x01(\x03R\tproductId\x12!\n" +
+	"\fproduct_name\x18\x02 \x01(\tR\vproductName\x12l\n" +
+	"\x06points\x18\x03 \x03(\v2T.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ProductDailyTrendPointR\x06points\"I\n" +
+	"\x16ProductDailyTrendPoint\x12\x10\n" +
+	"\x03day\x18\x01 \x01(\tR\x03day\x12\x1d\n" +
+	"\n" +
+	"sold_units\x18\x02 \x01(\x03R\tsoldUnits\"}\n" +
 	"\x10GetNichesRequest\x12\x1b\n" +
 	"\tvendor_id\x18\x01 \x01(\x03R\bvendorId\x12\x12\n" +
 	"\x04from\x18\x02 \x01(\tR\x04from\x12\x0e\n" +
@@ -1386,46 +1516,50 @@ func file_v1_vendor_analytics_vendor_service_proto_rawDescGZIP() []byte {
 	return file_v1_vendor_analytics_vendor_service_proto_rawDescData
 }
 
-var file_v1_vendor_analytics_vendor_service_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
+var file_v1_vendor_analytics_vendor_service_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_v1_vendor_analytics_vendor_service_proto_goTypes = []any{
 	(*GetOverviewRequest)(nil),        // 0: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetOverviewRequest
 	(*GetOverviewResponse)(nil),       // 1: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetOverviewResponse
 	(*AnalyticsKpi)(nil),              // 2: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsKpi
 	(*DailyTrendPoint)(nil),           // 3: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.DailyTrendPoint
-	(*GetNichesRequest)(nil),          // 4: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetNichesRequest
-	(*GetNichesResponse)(nil),         // 5: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetNichesResponse
-	(*NicheMetric)(nil),               // 6: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.NicheMetric
-	(*GetProductsRequest)(nil),        // 7: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetProductsRequest
-	(*GetProductsResponse)(nil),       // 8: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetProductsResponse
-	(*ProductMetric)(nil),             // 9: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ProductMetric
-	(*UpsertProductCostRequest)(nil),  // 10: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.UpsertProductCostRequest
-	(*UpsertProductCostResponse)(nil), // 11: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.UpsertProductCostResponse
-	(*ExportSalesReportRequest)(nil),  // 12: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ExportSalesReportRequest
-	(*ExportSalesReportResponse)(nil), // 13: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ExportSalesReportResponse
-	(*Tariff)(nil),                    // 14: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.Tariff
+	(*ProductDailyTrend)(nil),         // 4: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ProductDailyTrend
+	(*ProductDailyTrendPoint)(nil),    // 5: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ProductDailyTrendPoint
+	(*GetNichesRequest)(nil),          // 6: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetNichesRequest
+	(*GetNichesResponse)(nil),         // 7: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetNichesResponse
+	(*NicheMetric)(nil),               // 8: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.NicheMetric
+	(*GetProductsRequest)(nil),        // 9: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetProductsRequest
+	(*GetProductsResponse)(nil),       // 10: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetProductsResponse
+	(*ProductMetric)(nil),             // 11: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ProductMetric
+	(*UpsertProductCostRequest)(nil),  // 12: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.UpsertProductCostRequest
+	(*UpsertProductCostResponse)(nil), // 13: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.UpsertProductCostResponse
+	(*ExportSalesReportRequest)(nil),  // 14: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ExportSalesReportRequest
+	(*ExportSalesReportResponse)(nil), // 15: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ExportSalesReportResponse
+	(*Tariff)(nil),                    // 16: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.Tariff
 }
 var file_v1_vendor_analytics_vendor_service_proto_depIdxs = []int32{
 	2,  // 0: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetOverviewResponse.kpi:type_name -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsKpi
 	3,  // 1: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetOverviewResponse.trend:type_name -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.DailyTrendPoint
-	14, // 2: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetOverviewResponse.tariff:type_name -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.Tariff
-	6,  // 3: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetNichesResponse.niches:type_name -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.NicheMetric
-	9,  // 4: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetProductsResponse.products:type_name -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ProductMetric
-	9,  // 5: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.UpsertProductCostResponse.product:type_name -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ProductMetric
-	0,  // 6: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.GetOverview:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetOverviewRequest
-	4,  // 7: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.GetNiches:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetNichesRequest
-	7,  // 8: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.GetProducts:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetProductsRequest
-	10, // 9: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.UpsertProductCost:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.UpsertProductCostRequest
-	12, // 10: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.ExportSalesReport:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ExportSalesReportRequest
-	1,  // 11: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.GetOverview:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetOverviewResponse
-	5,  // 12: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.GetNiches:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetNichesResponse
-	8,  // 13: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.GetProducts:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetProductsResponse
-	11, // 14: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.UpsertProductCost:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.UpsertProductCostResponse
-	13, // 15: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.ExportSalesReport:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ExportSalesReportResponse
-	11, // [11:16] is the sub-list for method output_type
-	6,  // [6:11] is the sub-list for method input_type
-	6,  // [6:6] is the sub-list for extension type_name
-	6,  // [6:6] is the sub-list for extension extendee
-	0,  // [0:6] is the sub-list for field type_name
+	16, // 2: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetOverviewResponse.tariff:type_name -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.Tariff
+	4,  // 3: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetOverviewResponse.product_trends:type_name -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ProductDailyTrend
+	5,  // 4: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ProductDailyTrend.points:type_name -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ProductDailyTrendPoint
+	8,  // 5: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetNichesResponse.niches:type_name -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.NicheMetric
+	11, // 6: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetProductsResponse.products:type_name -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ProductMetric
+	11, // 7: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.UpsertProductCostResponse.product:type_name -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ProductMetric
+	0,  // 8: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.GetOverview:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetOverviewRequest
+	6,  // 9: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.GetNiches:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetNichesRequest
+	9,  // 10: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.GetProducts:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetProductsRequest
+	12, // 11: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.UpsertProductCost:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.UpsertProductCostRequest
+	14, // 12: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.ExportSalesReport:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ExportSalesReportRequest
+	1,  // 13: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.GetOverview:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetOverviewResponse
+	7,  // 14: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.GetNiches:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetNichesResponse
+	10, // 15: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.GetProducts:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.GetProductsResponse
+	13, // 16: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.UpsertProductCost:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.UpsertProductCostResponse
+	15, // 17: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService.ExportSalesReport:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.ExportSalesReportResponse
+	13, // [13:18] is the sub-list for method output_type
+	8,  // [8:13] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_v1_vendor_analytics_vendor_service_proto_init() }
@@ -1439,7 +1573,7 @@ func file_v1_vendor_analytics_vendor_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_vendor_analytics_vendor_service_proto_rawDesc), len(file_v1_vendor_analytics_vendor_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   15,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

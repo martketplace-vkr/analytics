@@ -31,9 +31,10 @@ func (h *Handler) GetOverview(ctx context.Context, req *vendorpb.GetOverviewRequ
 	}
 
 	return &vendorpb.GetOverviewResponse{
-		Kpi:    kpiToProto(overview.KPI),
-		Trend:  trendToProto(overview.Trend),
-		Tariff: tariffToProto(overview.Tariff),
+		Kpi:           kpiToProto(overview.KPI),
+		Trend:         trendToProto(overview.Trend),
+		Tariff:        tariffToProto(overview.Tariff),
+		ProductTrends: productTrendsToProto(overview.ProductTrends),
 	}, nil
 }
 
@@ -142,6 +143,25 @@ func trendToProto(trend []domain.DailyTrendPoint) []*vendorpb.DailyTrendPoint {
 			GrossProfit:    point.GrossProfit,
 			MarketplaceFee: point.MarketplaceFee,
 			NetProfit:      point.NetProfit,
+		})
+	}
+	return result
+}
+
+func productTrendsToProto(trends []domain.ProductDailyTrend) []*vendorpb.ProductDailyTrend {
+	result := make([]*vendorpb.ProductDailyTrend, 0, len(trends))
+	for _, trend := range trends {
+		points := make([]*vendorpb.ProductDailyTrendPoint, 0, len(trend.Points))
+		for _, point := range trend.Points {
+			points = append(points, &vendorpb.ProductDailyTrendPoint{
+				Day:       point.Day,
+				SoldUnits: point.SoldUnits,
+			})
+		}
+		result = append(result, &vendorpb.ProductDailyTrend{
+			ProductId:   trend.ProductID,
+			ProductName: trend.ProductName,
+			Points:      points,
 		})
 	}
 	return result

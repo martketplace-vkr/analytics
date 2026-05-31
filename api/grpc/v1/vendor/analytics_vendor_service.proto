@@ -22,6 +22,7 @@ message GetOverviewResponse {
   AnalyticsKpi kpi = 1;
   repeated DailyTrendPoint trend = 2;
   Tariff tariff = 3;
+  repeated ProductDailyTrend product_trends = 4;
 }
 
 message AnalyticsKpi {
@@ -46,6 +47,17 @@ message DailyTrendPoint {
   string gross_profit = 5;
   string marketplace_fee = 6;
   string net_profit = 7;
+}
+
+message ProductDailyTrend {
+  int64 product_id = 1;
+  string product_name = 2;
+  repeated ProductDailyTrendPoint points = 3;
+}
+
+message ProductDailyTrendPoint {
+  string day = 1;
+  int64 sold_units = 2;
 }
 
 message GetNichesRequest {
