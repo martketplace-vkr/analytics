@@ -341,15 +341,13 @@ func (r *Repository) GetOverview(ctx context.Context, vendorID int64, dateRange 
 	}
 
 	productTrendRows := []struct {
-		ProductID   int64     `db:"product_id"`
-		ProductName string    `db:"product_name"`
-		Day         time.Time `db:"day"`
-		SoldUnits   int64     `db:"sold_units"`
+		ProductID int64     `db:"product_id"`
+		Day       time.Time `db:"day"`
+		SoldUnits int64     `db:"sold_units"`
 	}{}
 	err = r.analyticsDB.SelectContext(ctx, &productTrendRows, `
 		select
 			product_id,
-			max(product_name) as product_name,
 			day,
 			coalesce(sum(sold_units), 0) as sold_units
 		from daily_vendor_product_metrics
@@ -362,6 +360,15 @@ func (r *Repository) GetOverview(ctx context.Context, vendorID int64, dateRange 
 		return domain.Overview{}, err
 	}
 
+	products, err := r.selectSourceProducts(ctx, vendorID)
+	if err != nil {
+		return domain.Overview{}, err
+	}
+	productNames := make(map[int64]string, len(products))
+	for _, product := range products {
+		productNames[product.ID] = product.Name
+	}
+
 	productTrends := make([]domain.ProductDailyTrend, 0)
 	productTrendIndex := make(map[int64]int)
 	for _, row := range productTrendRows {
@@ -371,7 +378,7 @@ func (r *Repository) GetOverview(ctx context.Context, vendorID int64, dateRange 
 			productTrendIndex[row.ProductID] = index
 			productTrends = append(productTrends, domain.ProductDailyTrend{
 				ProductID:   row.ProductID,
-				ProductName: row.ProductName,
+				ProductName: productNames[row.ProductID],
 			})
 		}
 		productTrends[index].Points = append(productTrends[index].Points, domain.ProductDailyTrendPoint{
