@@ -600,8 +600,16 @@ func (r *Repository) RecordProductView(ctx context.Context, view domain.ProductV
 		return false, err
 	}
 
+	tx, err := r.analyticsDB.BeginTxx(ctx, nil)
+	if err != nil {
+		return false, err
+	}
+	defer func() {
+		_ = tx.Rollback()
+	}()
+
 	var id int64
-	err = r.analyticsDB.QueryRowxContext(ctx, `
+	err = tx.QueryRowxContext(ctx, `
 		insert into product_view_events (
 			product_id, vendor_id, category_id, visitor_id, viewed_at
 		)
@@ -613,6 +621,23 @@ func (r *Repository) RecordProductView(ctx context.Context, view domain.ProductV
 		return false, nil
 	}
 	if err != nil {
+		return false, err
+	}
+
+	if _, err = tx.ExecContext(ctx, `
+		insert into daily_vendor_product_metrics (
+			day, vendor_id, product_id, category_id, views_count
+		)
+		values (current_date, $1, $2, $3, 1)
+		on conflict (day, vendor_id, product_id) do update
+		set
+			category_id = excluded.category_id,
+			views_count = daily_vendor_product_metrics.views_count + 1
+	`, product.VendorID, product.ID, product.CategoryID); err != nil {
+		return false, err
+	}
+
+	if err = tx.Commit(); err != nil {
 		return false, err
 	}
 
