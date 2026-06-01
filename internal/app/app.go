@@ -18,8 +18,9 @@ func Run(ctx context.Context, cfg *config.Config) error {
 	analyticsPG := pgxsqlxcomponent.New(cfg.Postgres)
 	orderPG := pgxsqlxcomponent.New(cfg.OrderPostgres)
 	catalogPG := pgxsqlxcomponent.New(cfg.CatalogPostgres)
+	authPG := pgxsqlxcomponent.New(cfg.AuthPostgres)
 
-	repo := repository.New(analyticsPG.DB, orderPG.DB, catalogPG.DB)
+	repo := repository.New(analyticsPG.DB, orderPG.DB, catalogPG.DB, authPG.DB)
 	service := analyticsService.New(repo)
 	adminHandler := adminTransport.New(service)
 	vendorHandler := vendorTransport.New(service)
@@ -31,6 +32,7 @@ func Run(ctx context.Context, cfg *config.Config) error {
 		analyticsPG,
 		orderPG,
 		catalogPG,
+		authPG,
 		refreshCmp,
 		grpcServer,
 	}

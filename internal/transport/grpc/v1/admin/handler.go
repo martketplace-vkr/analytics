@@ -103,6 +103,25 @@ func (h *Handler) GetVendorTariff(ctx context.Context, req *adminpb.GetVendorTar
 	}, nil
 }
 
+func (h *Handler) GetUserDashboard(ctx context.Context, req *adminpb.GetUserDashboardRequest) (*adminpb.GetUserDashboardResponse, error) {
+	dashboard, err := h.service.GetUserDashboard(ctx, int(req.GetDays()))
+	if err != nil {
+		return nil, mapError(err)
+	}
+	resp := &adminpb.GetUserDashboardResponse{
+		TotalClients: dashboard.TotalClients, BlockedClients: dashboard.BlockedClients,
+		NewClientsToday: dashboard.NewClientsToday, NewClientsYesterday: dashboard.NewClientsYesterday,
+		NewClientsDeltaPercent: dashboard.NewClientsDeltaPercent, ActiveClientsToday: dashboard.ActiveClientsToday,
+		UniqueVisitorsToday: dashboard.UniqueVisitorsToday,
+	}
+	for _, day := range dashboard.Days {
+		resp.Trend = append(resp.Trend, &adminpb.UserDashboardDay{
+			Day: day.Day, NewClients: day.NewClients, ActiveClients: day.ActiveClients, UniqueVisitors: day.UniqueVisitors,
+		})
+	}
+	return resp, nil
+}
+
 func mapError(err error) error {
 	switch {
 	case errors.Is(err, context.Canceled):

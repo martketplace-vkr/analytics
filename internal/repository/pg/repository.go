@@ -21,14 +21,121 @@ type Repository struct {
 	analyticsDB *sqlx.DB
 	orderDB     *sqlx.DB
 	catalogDB   *sqlx.DB
+	authDB      *sqlx.DB
 }
 
-func New(analyticsDB *sqlx.DB, orderDB *sqlx.DB, catalogDB *sqlx.DB) *Repository {
+func New(analyticsDB *sqlx.DB, orderDB *sqlx.DB, catalogDB *sqlx.DB, authDB *sqlx.DB) *Repository {
 	return &Repository{
 		analyticsDB: analyticsDB,
 		orderDB:     orderDB,
 		catalogDB:   catalogDB,
+		authDB:      authDB,
 	}
+}
+
+func (r *Repository) GetUserDashboard(ctx context.Context, days int) (domain.UserDashboard, error) {
+	if days != 7 && days != 30 {
+		days = 7
+	}
+	result := domain.UserDashboard{}
+	if err := r.authDB.GetContext(ctx, &result.TotalClients, `select count(*) from auth."user"`); err != nil {
+		return result, err
+	}
+	if err := r.authDB.GetContext(ctx, &result.BlockedClients, `select count(*) from auth."user" where status = 'blocked'`); err != nil {
+		return result, err
+	}
+	if err := r.authDB.GetContext(ctx, &result.NewClientsToday, `
+		select count(*) from auth."user"
+		where (created_at at time zone 'Europe/Moscow')::date = (now() at time zone 'Europe/Moscow')::date
+	`); err != nil {
+		return result, err
+	}
+	if err := r.authDB.GetContext(ctx, &result.NewClientsYesterday, `
+		select count(*) from auth."user"
+		where (created_at at time zone 'Europe/Moscow')::date = (now() at time zone 'Europe/Moscow')::date - 1
+	`); err != nil {
+		return result, err
+	}
+	if result.NewClientsYesterday > 0 {
+		result.NewClientsDeltaPercent = float64(result.NewClientsToday-result.NewClientsYesterday) / float64(result.NewClientsYesterday) * 100
+	}
+	if err := r.authDB.GetContext(ctx, &result.ActiveClientsToday, `
+		select count(*) from auth.client_activity_daily
+		where activity_day = (now() at time zone 'Europe/Moscow')::date
+	`); err != nil {
+		return result, err
+	}
+	if err := r.analyticsDB.GetContext(ctx, &result.UniqueVisitorsToday, `
+		select count(distinct visitor_id) from product_view_events
+		where (viewed_at at time zone 'Europe/Moscow')::date = (now() at time zone 'Europe/Moscow')::date
+	`); err != nil {
+		return result, err
+	}
+
+	type trendRow struct {
+		Day            string `db:"day"`
+		NewClients     int64  `db:"new_clients"`
+		ActiveClients  int64  `db:"active_clients"`
+		UniqueVisitors int64  `db:"unique_visitors"`
+	}
+	rows := []trendRow{}
+	if err := r.analyticsDB.SelectContext(ctx, &rows, `
+		with days as (
+			select generate_series(
+				(now() at time zone 'Europe/Moscow')::date - ($1::int - 1),
+				(now() at time zone 'Europe/Moscow')::date,
+				interval '1 day'
+			)::date as day
+		),
+		visitors as (
+			select (viewed_at at time zone 'Europe/Moscow')::date as day, count(distinct visitor_id) as unique_visitors
+			from product_view_events
+			group by 1
+		)
+		select d.day::text as day, coalesce(v.unique_visitors, 0) as unique_visitors
+		from days d
+		left join visitors v on v.day = d.day
+		order by d.day
+	`, days); err != nil {
+		return result, err
+	}
+
+	authRows := []trendRow{}
+	if err := r.authDB.SelectContext(ctx, &authRows, `
+		with days as (
+			select generate_series(
+				(now() at time zone 'Europe/Moscow')::date - ($1::int - 1),
+				(now() at time zone 'Europe/Moscow')::date,
+				interval '1 day'
+			)::date as day
+		),
+		registrations as (
+			select (created_at at time zone 'Europe/Moscow')::date as day, count(*) as new_clients
+			from auth."user"
+			group by 1
+		),
+		activity as (
+			select activity_day as day, count(*) as active_clients
+			from auth.client_activity_daily
+			group by 1
+		)
+		select d.day::text as day, coalesce(r.new_clients, 0) as new_clients, coalesce(a.active_clients, 0) as active_clients
+		from days d
+		left join registrations r on r.day = d.day
+		left join activity a on a.day = d.day
+		order by d.day
+	`, days); err != nil {
+		return result, err
+	}
+	for index := range rows {
+		rows[index].NewClients = authRows[index].NewClients
+		rows[index].ActiveClients = authRows[index].ActiveClients
+		result.Days = append(result.Days, domain.UserDashboardDay{
+			Day: rows[index].Day, NewClients: rows[index].NewClients,
+			ActiveClients: rows[index].ActiveClients, UniqueVisitors: rows[index].UniqueVisitors,
+		})
+	}
+	return result, nil
 }
 
 type sourceOrder struct {
@@ -611,9 +718,9 @@ func (r *Repository) RecordProductView(ctx context.Context, view domain.ProductV
 	var id int64
 	err = tx.QueryRowxContext(ctx, `
 		insert into product_view_events (
-			product_id, vendor_id, category_id, visitor_id, viewed_at
+			product_id, vendor_id, category_id, visitor_id, view_day, viewed_at
 		)
-		values ($1, $2, $3, $4, now())
+		values ($1, $2, $3, $4, (now() at time zone 'Europe/Moscow')::date, now())
 		on conflict do nothing
 		returning id
 	`, product.ID, product.VendorID, product.CategoryID, view.VisitorID).Scan(&id)
@@ -628,7 +735,7 @@ func (r *Repository) RecordProductView(ctx context.Context, view domain.ProductV
 		insert into daily_vendor_product_metrics (
 			day, vendor_id, product_id, category_id, views_count
 		)
-		values (current_date, $1, $2, $3, 1)
+		values ((now() at time zone 'Europe/Moscow')::date, $1, $2, $3, 1)
 		on conflict (day, vendor_id, product_id) do update
 		set
 			category_id = excluded.category_id,

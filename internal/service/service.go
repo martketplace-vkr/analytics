@@ -37,6 +37,14 @@ type repository interface {
 	GetVendorTariff(ctx context.Context, vendorID int64) (domain.Tariff, error)
 	VendorOwnsProduct(ctx context.Context, vendorID int64, productID int64) (bool, error)
 	GetSalesReportRows(ctx context.Context, vendorID int64, dateRange domain.DateRange, limit int) ([]domain.SalesReportRow, error)
+	GetUserDashboard(ctx context.Context, days int) (domain.UserDashboard, error)
+}
+
+func (s *Service) GetUserDashboard(ctx context.Context, days int) (domain.UserDashboard, error) {
+	if days != 7 && days != 30 {
+		return domain.UserDashboard{}, fmt.Errorf("%w: days must be 7 or 30", ErrInvalidArgument)
+	}
+	return s.repository.GetUserDashboard(ctx, days)
 }
 
 type Service struct {

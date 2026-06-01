@@ -30,6 +30,9 @@ func (f fakeRepository) RecordProductView(context.Context, domain.ProductView) (
 }
 func (f fakeRepository) UpsertProductCost(context.Context, domain.ProductCost) error { return nil }
 func (f fakeRepository) ListTariffs(context.Context) ([]domain.Tariff, error)        { return nil, nil }
+func (f fakeRepository) GetUserDashboard(context.Context, int) (domain.UserDashboard, error) {
+	return domain.UserDashboard{}, nil
+}
 func (f fakeRepository) CreateTariff(context.Context, domain.Tariff) (domain.Tariff, error) {
 	return domain.Tariff{}, nil
 }

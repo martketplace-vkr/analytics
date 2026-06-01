@@ -541,6 +541,218 @@ func (x *Tariff) GetUpdatedAt() string {
 	return ""
 }
 
+type GetUserDashboardRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Days          uint32                 `protobuf:"varint,1,opt,name=days,proto3" json:"days,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetUserDashboardRequest) Reset() {
+	*x = GetUserDashboardRequest{}
+	mi := &file_v1_admin_analytics_admin_service_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetUserDashboardRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUserDashboardRequest) ProtoMessage() {}
+
+func (x *GetUserDashboardRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_admin_analytics_admin_service_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUserDashboardRequest.ProtoReflect.Descriptor instead.
+func (*GetUserDashboardRequest) Descriptor() ([]byte, []int) {
+	return file_v1_admin_analytics_admin_service_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *GetUserDashboardRequest) GetDays() uint32 {
+	if x != nil {
+		return x.Days
+	}
+	return 0
+}
+
+type UserDashboardDay struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Day            string                 `protobuf:"bytes,1,opt,name=day,proto3" json:"day,omitempty"`
+	NewClients     int64                  `protobuf:"varint,2,opt,name=new_clients,json=newClients,proto3" json:"new_clients,omitempty"`
+	ActiveClients  int64                  `protobuf:"varint,3,opt,name=active_clients,json=activeClients,proto3" json:"active_clients,omitempty"`
+	UniqueVisitors int64                  `protobuf:"varint,4,opt,name=unique_visitors,json=uniqueVisitors,proto3" json:"unique_visitors,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *UserDashboardDay) Reset() {
+	*x = UserDashboardDay{}
+	mi := &file_v1_admin_analytics_admin_service_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UserDashboardDay) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserDashboardDay) ProtoMessage() {}
+
+func (x *UserDashboardDay) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_admin_analytics_admin_service_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserDashboardDay.ProtoReflect.Descriptor instead.
+func (*UserDashboardDay) Descriptor() ([]byte, []int) {
+	return file_v1_admin_analytics_admin_service_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *UserDashboardDay) GetDay() string {
+	if x != nil {
+		return x.Day
+	}
+	return ""
+}
+
+func (x *UserDashboardDay) GetNewClients() int64 {
+	if x != nil {
+		return x.NewClients
+	}
+	return 0
+}
+
+func (x *UserDashboardDay) GetActiveClients() int64 {
+	if x != nil {
+		return x.ActiveClients
+	}
+	return 0
+}
+
+func (x *UserDashboardDay) GetUniqueVisitors() int64 {
+	if x != nil {
+		return x.UniqueVisitors
+	}
+	return 0
+}
+
+type GetUserDashboardResponse struct {
+	state                  protoimpl.MessageState `protogen:"open.v1"`
+	TotalClients           int64                  `protobuf:"varint,1,opt,name=total_clients,json=totalClients,proto3" json:"total_clients,omitempty"`
+	BlockedClients         int64                  `protobuf:"varint,2,opt,name=blocked_clients,json=blockedClients,proto3" json:"blocked_clients,omitempty"`
+	NewClientsToday        int64                  `protobuf:"varint,3,opt,name=new_clients_today,json=newClientsToday,proto3" json:"new_clients_today,omitempty"`
+	NewClientsYesterday    int64                  `protobuf:"varint,4,opt,name=new_clients_yesterday,json=newClientsYesterday,proto3" json:"new_clients_yesterday,omitempty"`
+	NewClientsDeltaPercent float64                `protobuf:"fixed64,5,opt,name=new_clients_delta_percent,json=newClientsDeltaPercent,proto3" json:"new_clients_delta_percent,omitempty"`
+	ActiveClientsToday     int64                  `protobuf:"varint,6,opt,name=active_clients_today,json=activeClientsToday,proto3" json:"active_clients_today,omitempty"`
+	UniqueVisitorsToday    int64                  `protobuf:"varint,7,opt,name=unique_visitors_today,json=uniqueVisitorsToday,proto3" json:"unique_visitors_today,omitempty"`
+	Trend                  []*UserDashboardDay    `protobuf:"bytes,8,rep,name=trend,proto3" json:"trend,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *GetUserDashboardResponse) Reset() {
+	*x = GetUserDashboardResponse{}
+	mi := &file_v1_admin_analytics_admin_service_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetUserDashboardResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUserDashboardResponse) ProtoMessage() {}
+
+func (x *GetUserDashboardResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_admin_analytics_admin_service_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUserDashboardResponse.ProtoReflect.Descriptor instead.
+func (*GetUserDashboardResponse) Descriptor() ([]byte, []int) {
+	return file_v1_admin_analytics_admin_service_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *GetUserDashboardResponse) GetTotalClients() int64 {
+	if x != nil {
+		return x.TotalClients
+	}
+	return 0
+}
+
+func (x *GetUserDashboardResponse) GetBlockedClients() int64 {
+	if x != nil {
+		return x.BlockedClients
+	}
+	return 0
+}
+
+func (x *GetUserDashboardResponse) GetNewClientsToday() int64 {
+	if x != nil {
+		return x.NewClientsToday
+	}
+	return 0
+}
+
+func (x *GetUserDashboardResponse) GetNewClientsYesterday() int64 {
+	if x != nil {
+		return x.NewClientsYesterday
+	}
+	return 0
+}
+
+func (x *GetUserDashboardResponse) GetNewClientsDeltaPercent() float64 {
+	if x != nil {
+		return x.NewClientsDeltaPercent
+	}
+	return 0
+}
+
+func (x *GetUserDashboardResponse) GetActiveClientsToday() int64 {
+	if x != nil {
+		return x.ActiveClientsToday
+	}
+	return 0
+}
+
+func (x *GetUserDashboardResponse) GetUniqueVisitorsToday() int64 {
+	if x != nil {
+		return x.UniqueVisitorsToday
+	}
+	return 0
+}
+
+func (x *GetUserDashboardResponse) GetTrend() []*UserDashboardDay {
+	if x != nil {
+		return x.Trend
+	}
+	return nil
+}
+
 var File_v1_admin_analytics_admin_service_proto protoreflect.FileDescriptor
 
 const file_v1_admin_analytics_admin_service_proto_rawDesc = "" +
@@ -578,14 +790,33 @@ const file_v1_admin_analytics_admin_service_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x06 \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\a \x01(\tR\tupdatedAt2\xe0\b\n" +
+	"updated_at\x18\a \x01(\tR\tupdatedAt\"-\n" +
+	"\x17GetUserDashboardRequest\x12\x12\n" +
+	"\x04days\x18\x01 \x01(\rR\x04days\"\x95\x01\n" +
+	"\x10UserDashboardDay\x12\x10\n" +
+	"\x03day\x18\x01 \x01(\tR\x03day\x12\x1f\n" +
+	"\vnew_clients\x18\x02 \x01(\x03R\n" +
+	"newClients\x12%\n" +
+	"\x0eactive_clients\x18\x03 \x01(\x03R\ractiveClients\x12'\n" +
+	"\x0funique_visitors\x18\x04 \x01(\x03R\x0euniqueVisitors\"\xce\x03\n" +
+	"\x18GetUserDashboardResponse\x12#\n" +
+	"\rtotal_clients\x18\x01 \x01(\x03R\ftotalClients\x12'\n" +
+	"\x0fblocked_clients\x18\x02 \x01(\x03R\x0eblockedClients\x12*\n" +
+	"\x11new_clients_today\x18\x03 \x01(\x03R\x0fnewClientsToday\x122\n" +
+	"\x15new_clients_yesterday\x18\x04 \x01(\x03R\x13newClientsYesterday\x129\n" +
+	"\x19new_clients_delta_percent\x18\x05 \x01(\x01R\x16newClientsDeltaPercent\x120\n" +
+	"\x14active_clients_today\x18\x06 \x01(\x03R\x12activeClientsToday\x122\n" +
+	"\x15unique_visitors_today\x18\a \x01(\x03R\x13uniqueVisitorsToday\x12c\n" +
+	"\x05trend\x18\b \x03(\v2M.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.UserDashboardDayR\x05trend2\xa2\n" +
+	"\n" +
 	"\x15AnalyticsAdminService\x12\xb0\x01\n" +
 	"\vListTariffs\x12O.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.ListTariffsRequest\x1aP.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.ListTariffsResponse\x12\xad\x01\n" +
 	"\fCreateTariff\x12P.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.CreateTariffRequest\x1aK.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.TariffResponse\x12\xad\x01\n" +
 	"\fUpdateTariff\x12P.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.UpdateTariffRequest\x1aK.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.TariffResponse\x12\xb5\x01\n" +
 	"\x10SetDefaultTariff\x12T.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.SetDefaultTariffRequest\x1aK.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.TariffResponse\x12\xbf\x01\n" +
 	"\x12AssignVendorTariff\x12V.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AssignVendorTariffRequest\x1aQ.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.VendorTariffResponse\x12\xb9\x01\n" +
-	"\x0fGetVendorTariff\x12S.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.GetVendorTariffRequest\x1aQ.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.VendorTariffResponseBCZAgithub.com/martketplace-vkr/analytics/pkg/api/grpc/v1/admin;adminb\x06proto3"
+	"\x0fGetVendorTariff\x12S.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.GetVendorTariffRequest\x1aQ.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.VendorTariffResponse\x12\xbf\x01\n" +
+	"\x10GetUserDashboard\x12T.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.GetUserDashboardRequest\x1aU.github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.GetUserDashboardResponseBCZAgithub.com/martketplace-vkr/analytics/pkg/api/grpc/v1/admin;adminb\x06proto3"
 
 var (
 	file_v1_admin_analytics_admin_service_proto_rawDescOnce sync.Once
@@ -599,7 +830,7 @@ func file_v1_admin_analytics_admin_service_proto_rawDescGZIP() []byte {
 	return file_v1_admin_analytics_admin_service_proto_rawDescData
 }
 
-var file_v1_admin_analytics_admin_service_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_v1_admin_analytics_admin_service_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_v1_admin_analytics_admin_service_proto_goTypes = []any{
 	(*ListTariffsRequest)(nil),        // 0: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.ListTariffsRequest
 	(*ListTariffsResponse)(nil),       // 1: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.ListTariffsResponse
@@ -611,28 +842,34 @@ var file_v1_admin_analytics_admin_service_proto_goTypes = []any{
 	(*TariffResponse)(nil),            // 7: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.TariffResponse
 	(*VendorTariffResponse)(nil),      // 8: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.VendorTariffResponse
 	(*Tariff)(nil),                    // 9: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.Tariff
+	(*GetUserDashboardRequest)(nil),   // 10: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.GetUserDashboardRequest
+	(*UserDashboardDay)(nil),          // 11: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.UserDashboardDay
+	(*GetUserDashboardResponse)(nil),  // 12: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.GetUserDashboardResponse
 }
 var file_v1_admin_analytics_admin_service_proto_depIdxs = []int32{
-	9, // 0: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.ListTariffsResponse.tariffs:type_name -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.Tariff
-	9, // 1: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.TariffResponse.tariff:type_name -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.Tariff
-	9, // 2: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.VendorTariffResponse.tariff:type_name -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.Tariff
-	0, // 3: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AnalyticsAdminService.ListTariffs:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.ListTariffsRequest
-	2, // 4: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AnalyticsAdminService.CreateTariff:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.CreateTariffRequest
-	3, // 5: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AnalyticsAdminService.UpdateTariff:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.UpdateTariffRequest
-	4, // 6: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AnalyticsAdminService.SetDefaultTariff:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.SetDefaultTariffRequest
-	5, // 7: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AnalyticsAdminService.AssignVendorTariff:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AssignVendorTariffRequest
-	6, // 8: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AnalyticsAdminService.GetVendorTariff:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.GetVendorTariffRequest
-	1, // 9: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AnalyticsAdminService.ListTariffs:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.ListTariffsResponse
-	7, // 10: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AnalyticsAdminService.CreateTariff:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.TariffResponse
-	7, // 11: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AnalyticsAdminService.UpdateTariff:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.TariffResponse
-	7, // 12: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AnalyticsAdminService.SetDefaultTariff:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.TariffResponse
-	8, // 13: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AnalyticsAdminService.AssignVendorTariff:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.VendorTariffResponse
-	8, // 14: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AnalyticsAdminService.GetVendorTariff:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.VendorTariffResponse
-	9, // [9:15] is the sub-list for method output_type
-	3, // [3:9] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	9,  // 0: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.ListTariffsResponse.tariffs:type_name -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.Tariff
+	9,  // 1: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.TariffResponse.tariff:type_name -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.Tariff
+	9,  // 2: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.VendorTariffResponse.tariff:type_name -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.Tariff
+	11, // 3: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.GetUserDashboardResponse.trend:type_name -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.UserDashboardDay
+	0,  // 4: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AnalyticsAdminService.ListTariffs:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.ListTariffsRequest
+	2,  // 5: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AnalyticsAdminService.CreateTariff:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.CreateTariffRequest
+	3,  // 6: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AnalyticsAdminService.UpdateTariff:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.UpdateTariffRequest
+	4,  // 7: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AnalyticsAdminService.SetDefaultTariff:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.SetDefaultTariffRequest
+	5,  // 8: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AnalyticsAdminService.AssignVendorTariff:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AssignVendorTariffRequest
+	6,  // 9: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AnalyticsAdminService.GetVendorTariff:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.GetVendorTariffRequest
+	10, // 10: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AnalyticsAdminService.GetUserDashboard:input_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.GetUserDashboardRequest
+	1,  // 11: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AnalyticsAdminService.ListTariffs:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.ListTariffsResponse
+	7,  // 12: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AnalyticsAdminService.CreateTariff:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.TariffResponse
+	7,  // 13: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AnalyticsAdminService.UpdateTariff:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.TariffResponse
+	7,  // 14: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AnalyticsAdminService.SetDefaultTariff:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.TariffResponse
+	8,  // 15: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AnalyticsAdminService.AssignVendorTariff:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.VendorTariffResponse
+	8,  // 16: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AnalyticsAdminService.GetVendorTariff:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.VendorTariffResponse
+	12, // 17: github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AnalyticsAdminService.GetUserDashboard:output_type -> github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.GetUserDashboardResponse
+	11, // [11:18] is the sub-list for method output_type
+	4,  // [4:11] is the sub-list for method input_type
+	4,  // [4:4] is the sub-list for extension type_name
+	4,  // [4:4] is the sub-list for extension extendee
+	0,  // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_v1_admin_analytics_admin_service_proto_init() }
@@ -646,7 +883,7 @@ func file_v1_admin_analytics_admin_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_admin_analytics_admin_service_proto_rawDesc), len(file_v1_admin_analytics_admin_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -11,6 +11,7 @@ service AnalyticsAdminService {
   rpc SetDefaultTariff(SetDefaultTariffRequest) returns (TariffResponse);
   rpc AssignVendorTariff(AssignVendorTariffRequest) returns (VendorTariffResponse);
   rpc GetVendorTariff(GetVendorTariffRequest) returns (VendorTariffResponse);
+  rpc GetUserDashboard(GetUserDashboardRequest) returns (GetUserDashboardResponse);
 }
 
 message ListTariffsRequest {}
@@ -60,4 +61,26 @@ message Tariff {
   int64 assigned_vendors = 5;
   string created_at = 6;
   string updated_at = 7;
+}
+
+message GetUserDashboardRequest {
+  uint32 days = 1;
+}
+
+message UserDashboardDay {
+  string day = 1;
+  int64 new_clients = 2;
+  int64 active_clients = 3;
+  int64 unique_visitors = 4;
+}
+
+message GetUserDashboardResponse {
+  int64 total_clients = 1;
+  int64 blocked_clients = 2;
+  int64 new_clients_today = 3;
+  int64 new_clients_yesterday = 4;
+  double new_clients_delta_percent = 5;
+  int64 active_clients_today = 6;
+  int64 unique_visitors_today = 7;
+  repeated UserDashboardDay trend = 8;
 }

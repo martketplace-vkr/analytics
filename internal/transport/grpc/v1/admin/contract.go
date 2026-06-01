@@ -13,4 +13,5 @@ type analyticsService interface {
 	SetDefaultTariff(ctx context.Context, tariffID int64) (domain.Tariff, error)
 	AssignVendorTariff(ctx context.Context, vendorID int64, tariffID int64) (domain.VendorTariffAssignment, error)
 	GetVendorTariff(ctx context.Context, vendorID int64) (domain.Tariff, error)
+	GetUserDashboard(ctx context.Context, days int) (domain.UserDashboard, error)
 }

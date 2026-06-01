@@ -25,6 +25,7 @@ const (
 	AnalyticsAdminService_SetDefaultTariff_FullMethodName   = "/github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AnalyticsAdminService/SetDefaultTariff"
 	AnalyticsAdminService_AssignVendorTariff_FullMethodName = "/github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AnalyticsAdminService/AssignVendorTariff"
 	AnalyticsAdminService_GetVendorTariff_FullMethodName    = "/github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AnalyticsAdminService/GetVendorTariff"
+	AnalyticsAdminService_GetUserDashboard_FullMethodName   = "/github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.admin.AnalyticsAdminService/GetUserDashboard"
 )
 
 // AnalyticsAdminServiceClient is the client API for AnalyticsAdminService service.
@@ -37,6 +38,7 @@ type AnalyticsAdminServiceClient interface {
 	SetDefaultTariff(ctx context.Context, in *SetDefaultTariffRequest, opts ...grpc.CallOption) (*TariffResponse, error)
 	AssignVendorTariff(ctx context.Context, in *AssignVendorTariffRequest, opts ...grpc.CallOption) (*VendorTariffResponse, error)
 	GetVendorTariff(ctx context.Context, in *GetVendorTariffRequest, opts ...grpc.CallOption) (*VendorTariffResponse, error)
+	GetUserDashboard(ctx context.Context, in *GetUserDashboardRequest, opts ...grpc.CallOption) (*GetUserDashboardResponse, error)
 }
 
 type analyticsAdminServiceClient struct {
@@ -107,6 +109,16 @@ func (c *analyticsAdminServiceClient) GetVendorTariff(ctx context.Context, in *G
 	return out, nil
 }
 
+func (c *analyticsAdminServiceClient) GetUserDashboard(ctx context.Context, in *GetUserDashboardRequest, opts ...grpc.CallOption) (*GetUserDashboardResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetUserDashboardResponse)
+	err := c.cc.Invoke(ctx, AnalyticsAdminService_GetUserDashboard_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AnalyticsAdminServiceServer is the server API for AnalyticsAdminService service.
 // All implementations must embed UnimplementedAnalyticsAdminServiceServer
 // for forward compatibility.
@@ -117,6 +129,7 @@ type AnalyticsAdminServiceServer interface {
 	SetDefaultTariff(context.Context, *SetDefaultTariffRequest) (*TariffResponse, error)
 	AssignVendorTariff(context.Context, *AssignVendorTariffRequest) (*VendorTariffResponse, error)
 	GetVendorTariff(context.Context, *GetVendorTariffRequest) (*VendorTariffResponse, error)
+	GetUserDashboard(context.Context, *GetUserDashboardRequest) (*GetUserDashboardResponse, error)
 	mustEmbedUnimplementedAnalyticsAdminServiceServer()
 }
 
@@ -144,6 +157,9 @@ func (UnimplementedAnalyticsAdminServiceServer) AssignVendorTariff(context.Conte
 }
 func (UnimplementedAnalyticsAdminServiceServer) GetVendorTariff(context.Context, *GetVendorTariffRequest) (*VendorTariffResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetVendorTariff not implemented")
+}
+func (UnimplementedAnalyticsAdminServiceServer) GetUserDashboard(context.Context, *GetUserDashboardRequest) (*GetUserDashboardResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserDashboard not implemented")
 }
 func (UnimplementedAnalyticsAdminServiceServer) mustEmbedUnimplementedAnalyticsAdminServiceServer() {}
 func (UnimplementedAnalyticsAdminServiceServer) testEmbeddedByValue()                               {}
@@ -274,6 +290,24 @@ func _AnalyticsAdminService_GetVendorTariff_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AnalyticsAdminService_GetUserDashboard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserDashboardRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AnalyticsAdminServiceServer).GetUserDashboard(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AnalyticsAdminService_GetUserDashboard_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AnalyticsAdminServiceServer).GetUserDashboard(ctx, req.(*GetUserDashboardRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AnalyticsAdminService_ServiceDesc is the grpc.ServiceDesc for AnalyticsAdminService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -304,6 +338,10 @@ var AnalyticsAdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetVendorTariff",
 			Handler:    _AnalyticsAdminService_GetVendorTariff_Handler,
+		},
+		{
+			MethodName: "GetUserDashboard",
+			Handler:    _AnalyticsAdminService_GetUserDashboard_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

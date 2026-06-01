@@ -11,6 +11,7 @@ type Config struct {
 	Postgres        pgxsqlxcomponent.Config `validate:"required"`
 	OrderPostgres   pgxsqlxcomponent.Config `validate:"required"`
 	CatalogPostgres pgxsqlxcomponent.Config `validate:"required"`
+	AuthPostgres    pgxsqlxcomponent.Config `validate:"required"`
 	Refresh         RefreshConfig           `validate:"required"`
 }
 
