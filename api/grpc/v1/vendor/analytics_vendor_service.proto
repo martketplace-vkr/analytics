@@ -8,6 +8,7 @@ service AnalyticsVendorService {
   rpc GetOverview(GetOverviewRequest) returns (GetOverviewResponse);
   rpc GetNiches(GetNichesRequest) returns (GetNichesResponse);
   rpc GetProducts(GetProductsRequest) returns (GetProductsResponse);
+  rpc RecordProductView(RecordProductViewRequest) returns (RecordProductViewResponse);
   rpc UpsertProductCost(UpsertProductCostRequest) returns (UpsertProductCostResponse);
   rpc ExportSalesReport(ExportSalesReportRequest) returns (ExportSalesReportResponse);
 }
@@ -37,6 +38,7 @@ message AnalyticsKpi {
   string marketplace_fee = 9;
   string net_profit = 10;
   double net_margin_percent = 11;
+  int64 product_views = 12;
 }
 
 message DailyTrendPoint {
@@ -47,6 +49,7 @@ message DailyTrendPoint {
   string gross_profit = 5;
   string marketplace_fee = 6;
   string net_profit = 7;
+  int64 product_views = 8;
 }
 
 message ProductDailyTrend {
@@ -58,6 +61,16 @@ message ProductDailyTrend {
 message ProductDailyTrendPoint {
   string day = 1;
   int64 sold_units = 2;
+  int64 views_count = 3;
+}
+
+message RecordProductViewRequest {
+  int64 product_id = 1;
+  string visitor_id = 2;
+}
+
+message RecordProductViewResponse {
+  bool recorded = 1;
 }
 
 message GetNichesRequest {
@@ -119,6 +132,7 @@ message ProductMetric {
   string marketplace_fee = 14;
   string net_profit = 15;
   double net_margin_percent = 16;
+  int64 views_count = 17;
 }
 
 message UpsertProductCostRequest {

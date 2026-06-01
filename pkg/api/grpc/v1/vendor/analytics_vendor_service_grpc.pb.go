@@ -22,6 +22,7 @@ const (
 	AnalyticsVendorService_GetOverview_FullMethodName       = "/github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService/GetOverview"
 	AnalyticsVendorService_GetNiches_FullMethodName         = "/github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService/GetNiches"
 	AnalyticsVendorService_GetProducts_FullMethodName       = "/github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService/GetProducts"
+	AnalyticsVendorService_RecordProductView_FullMethodName = "/github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService/RecordProductView"
 	AnalyticsVendorService_UpsertProductCost_FullMethodName = "/github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService/UpsertProductCost"
 	AnalyticsVendorService_ExportSalesReport_FullMethodName = "/github.com.martketplace.vkr.analytics.pkg.api.grpc.v1.vendor.AnalyticsVendorService/ExportSalesReport"
 )
@@ -33,6 +34,7 @@ type AnalyticsVendorServiceClient interface {
 	GetOverview(ctx context.Context, in *GetOverviewRequest, opts ...grpc.CallOption) (*GetOverviewResponse, error)
 	GetNiches(ctx context.Context, in *GetNichesRequest, opts ...grpc.CallOption) (*GetNichesResponse, error)
 	GetProducts(ctx context.Context, in *GetProductsRequest, opts ...grpc.CallOption) (*GetProductsResponse, error)
+	RecordProductView(ctx context.Context, in *RecordProductViewRequest, opts ...grpc.CallOption) (*RecordProductViewResponse, error)
 	UpsertProductCost(ctx context.Context, in *UpsertProductCostRequest, opts ...grpc.CallOption) (*UpsertProductCostResponse, error)
 	ExportSalesReport(ctx context.Context, in *ExportSalesReportRequest, opts ...grpc.CallOption) (*ExportSalesReportResponse, error)
 }
@@ -75,6 +77,16 @@ func (c *analyticsVendorServiceClient) GetProducts(ctx context.Context, in *GetP
 	return out, nil
 }
 
+func (c *analyticsVendorServiceClient) RecordProductView(ctx context.Context, in *RecordProductViewRequest, opts ...grpc.CallOption) (*RecordProductViewResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RecordProductViewResponse)
+	err := c.cc.Invoke(ctx, AnalyticsVendorService_RecordProductView_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *analyticsVendorServiceClient) UpsertProductCost(ctx context.Context, in *UpsertProductCostRequest, opts ...grpc.CallOption) (*UpsertProductCostResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpsertProductCostResponse)
@@ -102,6 +114,7 @@ type AnalyticsVendorServiceServer interface {
 	GetOverview(context.Context, *GetOverviewRequest) (*GetOverviewResponse, error)
 	GetNiches(context.Context, *GetNichesRequest) (*GetNichesResponse, error)
 	GetProducts(context.Context, *GetProductsRequest) (*GetProductsResponse, error)
+	RecordProductView(context.Context, *RecordProductViewRequest) (*RecordProductViewResponse, error)
 	UpsertProductCost(context.Context, *UpsertProductCostRequest) (*UpsertProductCostResponse, error)
 	ExportSalesReport(context.Context, *ExportSalesReportRequest) (*ExportSalesReportResponse, error)
 	mustEmbedUnimplementedAnalyticsVendorServiceServer()
@@ -122,6 +135,9 @@ func (UnimplementedAnalyticsVendorServiceServer) GetNiches(context.Context, *Get
 }
 func (UnimplementedAnalyticsVendorServiceServer) GetProducts(context.Context, *GetProductsRequest) (*GetProductsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProducts not implemented")
+}
+func (UnimplementedAnalyticsVendorServiceServer) RecordProductView(context.Context, *RecordProductViewRequest) (*RecordProductViewResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RecordProductView not implemented")
 }
 func (UnimplementedAnalyticsVendorServiceServer) UpsertProductCost(context.Context, *UpsertProductCostRequest) (*UpsertProductCostResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpsertProductCost not implemented")
@@ -205,6 +221,24 @@ func _AnalyticsVendorService_GetProducts_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AnalyticsVendorService_RecordProductView_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RecordProductViewRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AnalyticsVendorServiceServer).RecordProductView(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AnalyticsVendorService_RecordProductView_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AnalyticsVendorServiceServer).RecordProductView(ctx, req.(*RecordProductViewRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AnalyticsVendorService_UpsertProductCost_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpsertProductCostRequest)
 	if err := dec(in); err != nil {
@@ -259,6 +293,10 @@ var AnalyticsVendorService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetProducts",
 			Handler:    _AnalyticsVendorService_GetProducts_Handler,
+		},
+		{
+			MethodName: "RecordProductView",
+			Handler:    _AnalyticsVendorService_RecordProductView_Handler,
 		},
 		{
 			MethodName: "UpsertProductCost",

@@ -12,6 +12,7 @@ import (
 type fakeRepository struct {
 	ownsProduct bool
 	rows        []domain.SalesReportRow
+	recorded    bool
 }
 
 func (f fakeRepository) RefreshAggregates(context.Context) error { return nil }
@@ -23,6 +24,9 @@ func (f fakeRepository) GetNiches(context.Context, int64, domain.DateRange, stri
 }
 func (f fakeRepository) GetProducts(context.Context, int64, domain.DateRange) ([]domain.ProductMetric, error) {
 	return []domain.ProductMetric{{ProductID: 10, CostPrice: "12.50", HasCost: true}}, nil
+}
+func (f fakeRepository) RecordProductView(context.Context, domain.ProductView) (bool, error) {
+	return f.recorded, nil
 }
 func (f fakeRepository) UpsertProductCost(context.Context, domain.ProductCost) error { return nil }
 func (f fakeRepository) ListTariffs(context.Context) ([]domain.Tariff, error)        { return nil, nil }
@@ -57,6 +61,27 @@ func TestUpsertProductCostRejectsForeignProduct(t *testing.T) {
 	})
 	if !errors.Is(err, ErrNotFound) {
 		t.Fatalf("expected not found, got %v", err)
+	}
+}
+
+func TestRecordProductViewValidatesInput(t *testing.T) {
+	svc := New(fakeRepository{})
+	if _, err := svc.RecordProductView(context.Background(), domain.ProductView{ProductID: 0, VisitorID: "visitor"}); !errors.Is(err, ErrInvalidArgument) {
+		t.Fatalf("expected invalid product id, got %v", err)
+	}
+	if _, err := svc.RecordProductView(context.Background(), domain.ProductView{ProductID: 10, VisitorID: " "}); !errors.Is(err, ErrInvalidArgument) {
+		t.Fatalf("expected invalid visitor id, got %v", err)
+	}
+}
+
+func TestRecordProductViewReturnsRecordedFlag(t *testing.T) {
+	svc := New(fakeRepository{recorded: true})
+	recorded, err := svc.RecordProductView(context.Background(), domain.ProductView{ProductID: 10, VisitorID: "visitor"})
+	if err != nil {
+		t.Fatalf("record view: %v", err)
+	}
+	if !recorded {
+		t.Fatal("expected recorded flag")
 	}
 }
 

@@ -50,6 +50,7 @@ create table if not exists daily_vendor_product_metrics (
     gross_profit numeric(14,2) not null default 0,
     marketplace_fee numeric(14,2) not null default 0,
     net_profit numeric(14,2) not null default 0,
+    views_count bigint not null default 0,
     constraint pk_daily_vendor_product_metrics primary key (day, vendor_id, product_id)
 );
 
@@ -64,6 +65,26 @@ create index if not exists daily_vendor_product_metrics_product_idx
 
 create index if not exists daily_vendor_product_metrics_category_idx
     on daily_vendor_product_metrics (category_id);
+
+create table if not exists product_view_events (
+    id bigserial primary key,
+    product_id bigint not null,
+    vendor_id bigint not null,
+    category_id bigint not null,
+    visitor_id text not null,
+    view_day date not null default current_date,
+    viewed_at timestamptz not null default now(),
+    created_at timestamptz not null default now()
+);
+
+create index if not exists product_view_events_vendor_viewed_idx
+    on product_view_events (vendor_id, viewed_at);
+
+create index if not exists product_view_events_product_viewed_idx
+    on product_view_events (product_id, viewed_at);
+
+create unique index if not exists product_view_events_product_visitor_day_idx
+    on product_view_events (product_id, visitor_id, view_day);
 
 create table if not exists daily_niche_metrics (
     day date not null,

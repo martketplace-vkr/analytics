@@ -64,6 +64,22 @@ func (h *Handler) GetProducts(ctx context.Context, req *vendorpb.GetProductsRequ
 	return &vendorpb.GetProductsResponse{Products: productsToProto(products)}, nil
 }
 
+func (h *Handler) RecordProductView(ctx context.Context, req *vendorpb.RecordProductViewRequest) (*vendorpb.RecordProductViewResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request is required")
+	}
+
+	recorded, err := h.service.RecordProductView(ctx, domain.ProductView{
+		ProductID: req.GetProductId(),
+		VisitorID: req.GetVisitorId(),
+	})
+	if err != nil {
+		return nil, mapError(err)
+	}
+
+	return &vendorpb.RecordProductViewResponse{Recorded: recorded}, nil
+}
+
 func (h *Handler) UpsertProductCost(ctx context.Context, req *vendorpb.UpsertProductCostRequest) (*vendorpb.UpsertProductCostResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request is required")
@@ -122,6 +138,7 @@ func kpiToProto(kpi domain.KPI) *vendorpb.AnalyticsKpi {
 		SoldUnits:           kpi.SoldUnits,
 		OrdersCount:         kpi.OrdersCount,
 		SalesCount:          kpi.SalesCount,
+		ProductViews:        kpi.ProductViews,
 		Revenue:             kpi.Revenue,
 		GrossProfit:         kpi.GrossProfit,
 		MarginPercent:       kpi.MarginPercent,
@@ -139,6 +156,7 @@ func trendToProto(trend []domain.DailyTrendPoint) []*vendorpb.DailyTrendPoint {
 			Day:            point.Day,
 			DemandUnits:    point.DemandUnits,
 			SoldUnits:      point.SoldUnits,
+			ProductViews:   point.ProductViews,
 			Revenue:        point.Revenue,
 			GrossProfit:    point.GrossProfit,
 			MarketplaceFee: point.MarketplaceFee,
@@ -154,8 +172,9 @@ func productTrendsToProto(trends []domain.ProductDailyTrend) []*vendorpb.Product
 		points := make([]*vendorpb.ProductDailyTrendPoint, 0, len(trend.Points))
 		for _, point := range trend.Points {
 			points = append(points, &vendorpb.ProductDailyTrendPoint{
-				Day:       point.Day,
-				SoldUnits: point.SoldUnits,
+				Day:        point.Day,
+				SoldUnits:  point.SoldUnits,
+				ViewsCount: point.ViewsCount,
 			})
 		}
 		result = append(result, &vendorpb.ProductDailyTrend{
@@ -213,6 +232,7 @@ func productToProto(product domain.ProductMetric) *vendorpb.ProductMetric {
 		HasCost:          product.HasCost,
 		DemandUnits:      product.DemandUnits,
 		SoldUnits:        product.SoldUnits,
+		ViewsCount:       product.ViewsCount,
 		Revenue:          product.Revenue,
 		GrossProfit:      product.GrossProfit,
 		MarginPercent:    product.MarginPercent,

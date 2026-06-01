@@ -3,6 +3,7 @@ package service
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/csv"
 	"errors"
 	"fmt"
@@ -26,6 +27,7 @@ type repository interface {
 	GetOverview(ctx context.Context, vendorID int64, dateRange domain.DateRange) (domain.Overview, error)
 	GetNiches(ctx context.Context, vendorID int64, dateRange domain.DateRange, sortKey string, limit int) ([]domain.NicheMetric, error)
 	GetProducts(ctx context.Context, vendorID int64, dateRange domain.DateRange) ([]domain.ProductMetric, error)
+	RecordProductView(ctx context.Context, view domain.ProductView) (bool, error)
 	UpsertProductCost(ctx context.Context, cost domain.ProductCost) error
 	ListTariffs(ctx context.Context) ([]domain.Tariff, error)
 	CreateTariff(ctx context.Context, tariff domain.Tariff) (domain.Tariff, error)
@@ -85,6 +87,32 @@ func (s *Service) GetProducts(ctx context.Context, vendorID int64, from string, 
 		return nil, fmt.Errorf("%w: vendor_id must be positive", ErrInvalidArgument)
 	}
 	return s.repository.GetProducts(ctx, vendorID, dateRange)
+}
+
+func (s *Service) RecordProductView(ctx context.Context, view domain.ProductView) (bool, error) {
+	if view.ProductID <= 0 {
+		return false, fmt.Errorf("%w: product_id must be positive", ErrInvalidArgument)
+	}
+	view.VisitorID = strings.TrimSpace(view.VisitorID)
+	if view.VisitorID == "" {
+		return false, fmt.Errorf("%w: visitor_id is required", ErrInvalidArgument)
+	}
+	if len(view.VisitorID) > 128 {
+		return false, fmt.Errorf("%w: visitor_id is too long", ErrInvalidArgument)
+	}
+
+	recorded, err := s.repository.RecordProductView(ctx, view)
+	if errors.Is(err, sql.ErrNoRows) {
+		return false, ErrNotFound
+	}
+	if err != nil {
+		return false, err
+	}
+	if recorded {
+		_ = s.repository.RefreshAggregates(ctx)
+	}
+
+	return recorded, nil
 }
 
 func (s *Service) UpsertProductCost(ctx context.Context, cost domain.ProductCost) (domain.ProductMetric, error) {

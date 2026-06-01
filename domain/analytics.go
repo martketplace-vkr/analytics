@@ -10,6 +10,7 @@ type DateRange struct {
 type KPI struct {
 	DemandUnits         int64
 	SoldUnits           int64
+	ProductViews        int64
 	OrdersCount         int64
 	SalesCount          int64
 	Revenue             string
@@ -25,6 +26,7 @@ type DailyTrendPoint struct {
 	Day            string
 	DemandUnits    int64
 	SoldUnits      int64
+	ProductViews   int64
 	Revenue        string
 	GrossProfit    string
 	MarketplaceFee string
@@ -38,8 +40,9 @@ type ProductDailyTrend struct {
 }
 
 type ProductDailyTrendPoint struct {
-	Day       string
-	SoldUnits int64
+	Day        string
+	SoldUnits  int64
+	ViewsCount int64
 }
 
 type Overview struct {
@@ -80,6 +83,7 @@ type ProductMetric struct {
 	HasCost          bool
 	DemandUnits      int64
 	SoldUnits        int64
+	ViewsCount       int64
 	Revenue          string
 	GrossProfit      string
 	MarketplaceFee   string
@@ -93,6 +97,11 @@ type ProductCost struct {
 	ProductID int64
 	CostPrice string
 	Currency  string
+}
+
+type ProductView struct {
+	ProductID int64
+	VisitorID string
 }
 
 type Tariff struct {

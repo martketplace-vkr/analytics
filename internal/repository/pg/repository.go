@@ -2,6 +2,8 @@ package pg
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"math"
 	"sort"
@@ -76,6 +78,7 @@ type productAgg struct {
 	SalesCount          int64
 	DemandUnits         int64
 	SoldUnits           int64
+	ViewsCount          int64
 	SoldUnitsWithCost   int64
 	RevenueCents        int64
 	CostCoveredRevenue  int64
@@ -83,6 +86,14 @@ type productAgg struct {
 	GrossProfitCents    int64
 	MarketplaceFeeCents int64
 	NetProfitCents      int64
+}
+
+type productViewAgg struct {
+	Day        string `db:"day"`
+	VendorID   int64  `db:"vendor_id"`
+	ProductID  int64  `db:"product_id"`
+	CategoryID int64  `db:"category_id"`
+	ViewsCount int64  `db:"views_count"`
 }
 
 type nicheAgg struct {
@@ -181,6 +192,31 @@ func (r *Repository) RefreshAggregates(ctx context.Context) error {
 		nAgg.RevenueCents += totalCents
 	}
 
+	viewAggs, err := r.selectProductViewAggs(ctx)
+	if err != nil {
+		return err
+	}
+	for _, view := range viewAggs {
+		seenDays[view.Day] = struct{}{}
+		product := productByID[view.ProductID]
+		categoryID := view.CategoryID
+		if categoryID == 0 {
+			categoryID = product.CategoryID
+		}
+		if categoryID == 0 {
+			categoryID = -1
+		}
+		vendorID := view.VendorID
+		if vendorID == 0 {
+			vendorID = product.VendorID
+		}
+		if vendorID == 0 {
+			continue
+		}
+		pAgg := getProductAgg(productAggs, view.Day, vendorID, view.ProductID, categoryID)
+		pAgg.ViewsCount += view.ViewsCount
+	}
+
 	if len(seenDays) == 0 {
 		seenDays[time.Now().UTC().Format("2006-01-02")] = struct{}{}
 	}
@@ -215,9 +251,9 @@ func (r *Repository) RefreshAggregates(ctx context.Context) error {
 			insert into daily_vendor_product_metrics (
 				day, vendor_id, product_id, category_id, orders_count, sales_count,
 				demand_units, sold_units, sold_units_with_cost, revenue,
-				cost_covered_revenue, cost_total, gross_profit, marketplace_fee, net_profit
+				cost_covered_revenue, cost_total, gross_profit, marketplace_fee, net_profit, views_count
 			)
-			values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+			values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
 		`,
 			agg.Day,
 			agg.VendorID,
@@ -234,6 +270,7 @@ func (r *Repository) RefreshAggregates(ctx context.Context) error {
 			formatCents(agg.GrossProfitCents),
 			formatCents(agg.MarketplaceFeeCents),
 			formatCents(agg.NetProfitCents),
+			agg.ViewsCount,
 		); err != nil {
 			return err
 		}
@@ -270,6 +307,7 @@ func (r *Repository) GetOverview(ctx context.Context, vendorID int64, dateRange 
 		DemandUnits        int64  `db:"demand_units"`
 		SoldUnits          int64  `db:"sold_units"`
 		SoldUnitsWithCost  int64  `db:"sold_units_with_cost"`
+		ProductViews       int64  `db:"product_views"`
 		OrdersCount        int64  `db:"orders_count"`
 		SalesCount         int64  `db:"sales_count"`
 		Revenue            string `db:"revenue"`
@@ -284,6 +322,7 @@ func (r *Repository) GetOverview(ctx context.Context, vendorID int64, dateRange 
 			coalesce(sum(demand_units), 0) as demand_units,
 			coalesce(sum(sold_units), 0) as sold_units,
 			coalesce(sum(sold_units_with_cost), 0) as sold_units_with_cost,
+			coalesce(sum(views_count), 0) as product_views,
 			coalesce(sum(orders_count), 0) as orders_count,
 			coalesce(sum(sales_count), 0) as sales_count,
 			coalesce(sum(revenue), 0)::text as revenue,
@@ -303,6 +342,7 @@ func (r *Repository) GetOverview(ctx context.Context, vendorID int64, dateRange 
 		Day            time.Time `db:"day"`
 		DemandUnits    int64     `db:"demand_units"`
 		SoldUnits      int64     `db:"sold_units"`
+		ProductViews   int64     `db:"product_views"`
 		Revenue        string    `db:"revenue"`
 		GrossProfit    string    `db:"gross_profit"`
 		MarketplaceFee string    `db:"marketplace_fee"`
@@ -313,6 +353,7 @@ func (r *Repository) GetOverview(ctx context.Context, vendorID int64, dateRange 
 			day,
 			coalesce(sum(demand_units), 0) as demand_units,
 			coalesce(sum(sold_units), 0) as sold_units,
+			coalesce(sum(views_count), 0) as product_views,
 			coalesce(sum(revenue), 0)::text as revenue,
 			coalesce(sum(gross_profit), 0)::text as gross_profit,
 			coalesce(sum(marketplace_fee), 0)::text as marketplace_fee,
@@ -333,6 +374,7 @@ func (r *Repository) GetOverview(ctx context.Context, vendorID int64, dateRange 
 			Day:            row.Day.Format("2006-01-02"),
 			DemandUnits:    row.DemandUnits,
 			SoldUnits:      row.SoldUnits,
+			ProductViews:   row.ProductViews,
 			Revenue:        normalizeMoneyText(row.Revenue),
 			GrossProfit:    normalizeMoneyText(row.GrossProfit),
 			MarketplaceFee: normalizeMoneyText(row.MarketplaceFee),
@@ -341,15 +383,17 @@ func (r *Repository) GetOverview(ctx context.Context, vendorID int64, dateRange 
 	}
 
 	productTrendRows := []struct {
-		ProductID int64     `db:"product_id"`
-		Day       time.Time `db:"day"`
-		SoldUnits int64     `db:"sold_units"`
+		ProductID  int64     `db:"product_id"`
+		Day        time.Time `db:"day"`
+		SoldUnits  int64     `db:"sold_units"`
+		ViewsCount int64     `db:"views_count"`
 	}{}
 	err = r.analyticsDB.SelectContext(ctx, &productTrendRows, `
 		select
 			product_id,
 			day,
-			coalesce(sum(sold_units), 0) as sold_units
+			coalesce(sum(sold_units), 0) as sold_units,
+			coalesce(sum(views_count), 0) as views_count
 		from daily_vendor_product_metrics
 		where vendor_id = $1
 			and day between $2 and $3
@@ -382,8 +426,9 @@ func (r *Repository) GetOverview(ctx context.Context, vendorID int64, dateRange 
 			})
 		}
 		productTrends[index].Points = append(productTrends[index].Points, domain.ProductDailyTrendPoint{
-			Day:       row.Day.Format("2006-01-02"),
-			SoldUnits: row.SoldUnits,
+			Day:        row.Day.Format("2006-01-02"),
+			SoldUnits:  row.SoldUnits,
+			ViewsCount: row.ViewsCount,
 		})
 	}
 
@@ -401,6 +446,7 @@ func (r *Repository) GetOverview(ctx context.Context, vendorID int64, dateRange 
 		KPI: domain.KPI{
 			DemandUnits:         kpiRow.DemandUnits,
 			SoldUnits:           kpiRow.SoldUnits,
+			ProductViews:        kpiRow.ProductViews,
 			OrdersCount:         kpiRow.OrdersCount,
 			SalesCount:          kpiRow.SalesCount,
 			Revenue:             normalizeMoneyText(kpiRow.Revenue),
@@ -433,6 +479,7 @@ func (r *Repository) GetProducts(ctx context.Context, vendorID int64, dateRange 
 		CategoryID         int64  `db:"category_id"`
 		DemandUnits        int64  `db:"demand_units"`
 		SoldUnits          int64  `db:"sold_units"`
+		ViewsCount         int64  `db:"views_count"`
 		Revenue            string `db:"revenue"`
 		GrossProfit        string `db:"gross_profit"`
 		MarketplaceFee     string `db:"marketplace_fee"`
@@ -445,6 +492,7 @@ func (r *Repository) GetProducts(ctx context.Context, vendorID int64, dateRange 
 			max(category_id) as category_id,
 			coalesce(sum(demand_units), 0) as demand_units,
 			coalesce(sum(sold_units), 0) as sold_units,
+			coalesce(sum(views_count), 0) as views_count,
 			coalesce(sum(revenue), 0)::text as revenue,
 			coalesce(sum(gross_profit), 0)::text as gross_profit,
 			coalesce(sum(marketplace_fee), 0)::text as marketplace_fee,
@@ -471,6 +519,7 @@ func (r *Repository) GetProducts(ctx context.Context, vendorID int64, dateRange 
 			CategoryID:       row.CategoryID,
 			DemandUnits:      row.DemandUnits,
 			SoldUnits:        row.SoldUnits,
+			ViewsCount:       row.ViewsCount,
 			Revenue:          normalizeMoneyText(row.Revenue),
 			GrossProfit:      grossProfit,
 			MarketplaceFee:   normalizeMoneyText(row.MarketplaceFee),
@@ -543,6 +592,31 @@ func (r *Repository) GetProducts(ctx context.Context, vendorID int64, dateRange 
 	})
 
 	return result, nil
+}
+
+func (r *Repository) RecordProductView(ctx context.Context, view domain.ProductView) (bool, error) {
+	product, err := r.selectSourceProduct(ctx, view.ProductID)
+	if err != nil {
+		return false, err
+	}
+
+	var id int64
+	err = r.analyticsDB.QueryRowxContext(ctx, `
+		insert into product_view_events (
+			product_id, vendor_id, category_id, visitor_id, viewed_at
+		)
+		values ($1, $2, $3, $4, now())
+		on conflict do nothing
+		returning id
+	`, product.ID, product.VendorID, product.CategoryID, view.VisitorID).Scan(&id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 func (r *Repository) GetNiches(ctx context.Context, vendorID int64, dateRange domain.DateRange, sortKey string, limit int) ([]domain.NicheMetric, error) {
@@ -969,6 +1043,39 @@ func (r *Repository) selectSourceProducts(ctx context.Context, vendorID int64) (
 		where ($1 = 0 or p.vendor_id = $1)
 	`, vendorID)
 	return products, err
+}
+
+func (r *Repository) selectSourceProduct(ctx context.Context, productID int64) (sourceProduct, error) {
+	var product sourceProduct
+	err := r.catalogDB.GetContext(ctx, &product, `
+		select
+			p.id,
+			p.vendor_id,
+			p.category_id,
+			p.name,
+			p.price::text as price,
+			p.stock_count,
+			coalesce(c.name, 'Категория ' || p.category_id::text) as category_name
+		from products p
+		left join categories c on c.id = p.category_id
+		where p.id = $1
+	`, productID)
+	return product, err
+}
+
+func (r *Repository) selectProductViewAggs(ctx context.Context) ([]productViewAgg, error) {
+	rows := []productViewAgg{}
+	err := r.analyticsDB.SelectContext(ctx, &rows, `
+		select
+			view_day::text as day,
+			vendor_id,
+			product_id,
+			category_id,
+			count(*) as views_count
+		from product_view_events
+		group by view_day, vendor_id, product_id, category_id
+	`)
+	return rows, err
 }
 
 func (r *Repository) selectCategories(ctx context.Context) (map[int64]string, error) {
